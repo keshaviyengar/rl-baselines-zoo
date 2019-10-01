@@ -27,9 +27,38 @@ from stable_baselines.common.vec_env import VecFrameStack, SubprocVecEnv, VecNor
 from stable_baselines.ddpg import AdaptiveParamNoiseSpec, NormalActionNoise, OrnsteinUhlenbeckActionNoise
 from stable_baselines.ppo2.ppo2 import constfn
 
-from utils import make_env, ALGOS, linear_schedule, get_latest_run_id, get_wrapper_class
+from utils import make_env, ALGOS, linear_schedule, get_latest_run_id,get_wrapper_class
 from utils.hyperparams_opt import hyperparam_optimization
 from utils.noise import LinearNormalActionNoise
+
+
+from stable_baselines.her.utils import HERGoalEnvWrapper
+
+import ctm2_envs
+from utils.callback_visualizer import CallbackVisualizer
+import pandas as pd
+
+os.environ["OPENAI_LOG_FORMAT"] = 'stdout,log,csv,tensorboard'
+os.environ["OPENAI_LOGDIR"] = "logs"
+
+from stable_baselines.logger import configure
+configure()
+
+
+def callback(_locals, _globals):
+    if 'train_goal_data' not in _locals.keys():
+        _locals['train_goal_data'] = pd.DataFrame(columns=['x', 'y', 'z', 'error'])
+    if _locals['done']:
+        observation = _locals['self'].env.convert_obs_to_dict(_locals['new_obs'])
+        ag = observation['achieved_goal']
+        error = _locals['info']['error']
+        train_df = pd.DataFrame({"x": ag[0], "y": ag[1], "z": ag[2], "error": error}, index=[0])
+        _locals['train_goal_data'] = _locals['train_goal_data'].append(train_df)
+    if _locals['total_steps'] % 200 == 0:
+        with open('logs/training_data.csv', 'a') as writer:
+            _locals['train_goal_data'].to_csv(writer, header=False)
+            _locals['train_goal_data'] = pd.DataFrame(columns=['x', 'y', 'z', 'error'])
+    return True
 
 
 if __name__ == '__main__':
@@ -56,12 +85,20 @@ if __name__ == '__main__':
                         default='none', choices=['halving', 'median', 'none'])
     parser.add_argument('--verbose', help='Verbose mode (0: no output, 1: INFO)', default=1,
                         type=int)
-    parser.add_argument('--gym-packages', type=str, nargs='+', default=[], help='Additional external Gym environemnt package modules to import (e.g. gym_minigrid)')
+    parser.add_argument('--gym-packages', type=str, nargs='+', default=[],
+                        help='Additional external Gym environemnt package modules to import (e.g. gym_minigrid)')
+    parser.add_argument('--render-type', help='Choose a rendering type during evaluation: empty, record or human',
+                        default='', type=str)
     args = parser.parse_args()
 
     # Going through custom gym packages to let them register in the global registory
     for env_module in args.gym_packages:
         importlib.import_module(env_module)
+
+    # code to register bit flipping env
+    from stable_baselines.common.bit_flipping_env import BitFlippingEnv
+    from gym import register
+    gym.register(id='Bit-Flipping-v0', entry_point=BitFlippingEnv, kwargs={'n_bits': 10, 'continuous': True, 'max_steps': 10})
 
     env_ids = args.env
     registered_envs = set(gym.envs.registry.env_specs.keys())
@@ -124,7 +161,6 @@ if __name__ == '__main__':
 
         if args.verbose > 0:
             pprint(saved_hyperparams)
-
         n_envs = hyperparams.get('n_envs', 1)
 
         if args.verbose > 0:
@@ -170,6 +206,8 @@ if __name__ == '__main__':
         # Delete keys so the dict can be pass to the model constructor
         if 'n_envs' in hyperparams.keys():
             del hyperparams['n_envs']
+        if 'evaluation' in hyperparams.keys():
+            del hyperparams['evaluation']
         del hyperparams['n_timesteps']
 
         # obtain a class object from a wrapper name string in hyperparams
@@ -221,8 +259,14 @@ if __name__ == '__main__':
                 del hyperparams['frame_stack']
             return env
 
-
         env = create_env(n_envs)
+        eval_env = None
+        if algo_ == 'ddpg':
+            if args.render_type != '':
+                eval_env = HERGoalEnvWrapper(gym.make(env_id, ros_flag=True, render_type=args.render_type))
+            else:
+                eval_env = HERGoalEnvWrapper(gym.make(env_id))
+
         # Stop env processes to free memory
         if args.optimize_hyperparameters and n_envs > 1:
             env.close()
@@ -262,7 +306,7 @@ if __name__ == '__main__':
             # Policy should not be changed
             del hyperparams['policy']
 
-            model = ALGOS[args.algo].load(args.trained_agent, env=env,
+            model = ALGOS[args.algo].load(args.trained_agent, env=env, eval_env=eval_env,
                                           tensorboard_log=tensorboard_log, verbose=args.verbose, **hyperparams)
 
             exp_folder = args.trained_agent.split('.pkl')[0]
@@ -271,7 +315,6 @@ if __name__ == '__main__':
                 env.load_running_average(exp_folder)
 
         elif args.optimize_hyperparameters:
-
             if args.verbose > 0:
                 print("Optimizing hyperparameters")
 
@@ -279,10 +322,10 @@ if __name__ == '__main__':
             def create_model(*_args, **kwargs):
                 """
                 Helper to create a model with different hyperparameters
+
                 """
                 return ALGOS[args.algo](env=create_env(n_envs), tensorboard_log=tensorboard_log,
                                         verbose=0, **kwargs)
-
 
             data_frame = hyperparam_optimization(args.algo, create_model, create_env, n_trials=args.n_trials,
                                                  n_timesteps=n_timesteps, hyperparams=hyperparams,
@@ -303,27 +346,35 @@ if __name__ == '__main__':
             exit()
         else:
             # Train an agent from scratch
-            model = ALGOS[args.algo](env=env, tensorboard_log=tensorboard_log, verbose=args.verbose, **hyperparams)
+            if algo_ == 'ddpg':
+                model = ALGOS[args.algo](env=env, eval_env=eval_env, tensorboard_log=tensorboard_log, verbose=args.verbose, **hyperparams)
+            else:
+                model = ALGOS[args.algo](env=env, tensorboard_log=tensorboard_log, verbose=args.verbose, **hyperparams)
 
         kwargs = {}
         if args.log_interval > -1:
-            kwargs = {'log_interval': args.log_interval}
+            kwargs['log_interval'] = args.log_interval
+
+        callback_visualizer = CallbackVisualizer()
+        kwargs['callback'] = callback_visualizer.callback
 
         model.learn(n_timesteps, **kwargs)
 
         # Save trained model
         log_path = "{}/{}/".format(args.log_folder, args.algo)
+        print('log path: ', log_path)
         save_path = os.path.join(log_path, "{}_{}".format(env_id, get_latest_run_id(log_path, env_id) + 1))
-        params_path = "{}/{}".format(save_path, env_id)
-        os.makedirs(params_path, exist_ok=True)
+        print('save path: ', save_path)
+        os.makedirs(save_path, exist_ok=True)
 
         # Only save worker of rank 0 when using mpi
+        print('rank: ', rank)
         if rank == 0:
             print("Saving to {}".format(save_path))
 
             model.save("{}/{}".format(save_path, env_id))
             # Save hyperparams
-            with open(os.path.join(params_path, 'config.yml'), 'w') as f:
+            with open(os.path.join(save_path, 'config.yml'), 'w') as f:
                 yaml.dump(saved_hyperparams, f)
 
             if normalize:
@@ -331,4 +382,4 @@ if __name__ == '__main__':
                 if isinstance(env, VecFrameStack):
                     env = env.venv
                 # Important: save the running average, for testing the agent we need that normalization
-                env.save_running_average(params_path)
+                env.save_running_average(save_path)

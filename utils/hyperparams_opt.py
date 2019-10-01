@@ -78,7 +78,7 @@ def hyperparam_optimization(algo, model_fn, env_fn, n_trials=10, n_timesteps=500
             trial.model_class = hyperparams['model_class']
 
         # Hack to use DDPG sampler
-        if algo == 'ddpg' or trial.model_class == 'ddpg':
+        if algo == 'ddpg' or trial.model_class == DDPG:
             trial.n_actions = env_fn(n_envs=1).action_space.shape[0]
         kwargs.update(algo_sampler(trial))
 
@@ -175,6 +175,16 @@ def hyperparam_optimization(algo, model_fn, env_fn, n_trials=10, n_timesteps=500
         if is_pruned:
             raise optuna.structs.TrialPruned()
 
+        # Print out some logging information
+        print('current cost: ', cost)
+        print('current trial: ', trial.number)
+        # Save the best trial periodically
+        if trial.number % 10 == 0:
+            print('Best trial:')
+            print('Value: ', study.best_trial.value)
+            print('Params: ')
+            for key, value in study.best_trial.params.items():
+                print('    {}: {}'.format(key, value))
         return cost
 
     try:
@@ -340,6 +350,17 @@ def sample_ddpg_params(trial):
     normalize_observations = trial.suggest_categorical('normalize_observations', [True, False])
     normalize_returns = trial.suggest_categorical('normalize_returns', [True, False])
 
+    # Add in categorical parameters to use different network layers
+    policy_kwargs = trial.suggest_categorical('policy_kwargs', [dict(layers=[32, 32]),
+                                                                dict(layers=[64, 64]),
+                                                                dict(layers=[128, 128]),
+                                                                dict(layers=[256, 256]),
+                                                                dict(layers=[16, 16, 16]),
+                                                                dict(layers=[64, 64, 64]),
+                                                                dict(layers=[128, 128, 128]),
+                                                                dict(layers=[256, 256, 256])
+                                                                ])
+
     hyperparams = {
         'gamma': gamma,
         'actor_lr': learning_rate,
@@ -347,7 +368,8 @@ def sample_ddpg_params(trial):
         'batch_size': batch_size,
         'memory_limit': buffer_size,
         'normalize_observations': normalize_observations,
-        'normalize_returns': normalize_returns
+        'normalize_returns': normalize_returns,
+        'policy_kwargs': policy_kwargs
     }
 
     if noise_type == 'adaptive-param':

@@ -12,12 +12,32 @@ parking-v0:
   actor_lr: !!float 1e-3
   critic_lr: !!float 1e-3
   noise_type: 'normal'
-  noise_std: 0.2
+  noise_std: 0.1
   policy_kwargs: "dict(layers=[256, 256, 256])"
   nb_rollout_steps: 20
   nb_train_steps: 40
   tau: 0.00125 # (1 - gamma) / nb_train_steps
   # normalize_observations: true
+
+Bit-Flipping-v0:
+  n_timesteps: !!float 1e5
+  policy: 'MlpPolicy'
+  model_class: 'ddpg'
+  n_sampled_goal: 4
+  goal_selection_strategy: 'future'
+  #buffer_size: 1000
+  #batch_size: 32
+  #gamma: 0.98
+  random_exploration: 0.1
+  #actor_lr: !!float 1e-3
+  ##critic_lr: !!float 1e-3
+  ##noise_type: 'normal'
+  ##noise_std: 0.1
+  #policy_kwargs: "dict(layers=[256])"
+  #nb_rollout_steps: 10
+  #nb_train_steps: 10
+  #tau: 0.1
+
 
 # SAC hyperparams
 # parking-v0:
@@ -89,19 +109,31 @@ FetchPush-v1:
   train_freq: 1
 
 # SAC hyperparams
-FetchReach-v1:
-  n_timesteps: !!float 20000
+# FetchReach-v1:
+#   n_timesteps: !!float 20000
+#   policy: 'MlpPolicy'
+#   model_class: 'sac'
+#   n_sampled_goal: 4
+#   goal_selection_strategy: 'future'
+#   buffer_size: 1000000
+#   ent_coef: 'auto'
+#   batch_size: 256
+#   gamma: 0.95
+#   learning_rate: 0.001
+#   learning_starts: 1000
+
+FetchReachDense-v1:
+  n_timesteps: !!float 1e6
   policy: 'MlpPolicy'
   model_class: 'sac'
   n_sampled_goal: 4
   goal_selection_strategy: 'future'
   buffer_size: 1000000
-  ent_coef: 'auto'
-  batch_size: 256
   gamma: 0.95
-  learning_rate: 0.001
-  learning_starts: 1000
+  learning_rate: !!float 1e-3
+  batch_size: 256
 
+# FetchReachDense-v1:
 # TD3 hyperparams
 # FetchReach-v1:
 #   n_timesteps: !!float 25000
@@ -116,13 +148,79 @@ FetchReach-v1:
 #   learning_starts: 1000
 
 
-FetchReachDense-v1:
+Distal-1-Tube-Reach-v0:
   n_timesteps: !!float 1e6
   policy: 'MlpPolicy'
-  model_class: 'sac'
+  model_class: 'ddpg'
   n_sampled_goal: 4
   goal_selection_strategy: 'future'
-  buffer_size: 1000000
-  gamma: 0.95
-  learning_rate: !!float 1e-3
+  buffer_size: 10000
   batch_size: 256
+  gamma: 0.95
+  random_exploration: 0.294
+  actor_lr: !!float 0.0005
+  critic_lr: !!float 0.0005
+  noise_type: 'normal'
+  noise_std: 0.35
+  normalize_observations: true
+  normalize_returns: true
+  nb_eval_steps: 100
+  render: false
+  render_eval: True
+  policy_kwargs: "dict(layers=[128, 128, 128])"
+
+  # Distal-1-Tube-Reach-v0:
+  #   n_timesteps: !!float 60000
+  #   policy: 'MlpPolicy'
+  #   model_class: 'sac'
+  #   learning_rate: !!float 3e-4
+  #   buffer_size: 10000
+  #   batch_size: 256
+  #   ent_coef: 'auto'
+  #   train_freq: 1
+  #   gradient_steps: 1
+  #   learning_starts: 0
+  #   noise_type: 'normal'
+  #   noise_std: 0.35
+
+# Distal-2-Tube-Reach-v0:
+#   n_timesteps: !!float 10000
+#   policy: 'MlpPolicy'
+#   model_class: 'ddpg'
+#   n_sampled_goal: 8
+#   goal_selection_strategy: 'future'
+#   buffer_size: 10000
+#   batch_size: 256
+#   gamma: 0.95
+#   random_exploration: 0.294
+#   actor_lr: !!float 0.0005
+#   critic_lr: !!float 0.0005
+#   noise_type: 'normal'
+#   noise_std: 0.35
+#   normalize_observations: true
+#   normalize_returns: true
+#   nb_eval_steps: 100
+#   render: false
+#   render_eval: true
+#   policy_kwargs: "dict(layers=[128, 128, 128])"
+
+Distal-2-Tube-Reach-v0:
+  n_timesteps: !!float 1e6
+  policy: 'MlpPolicy'
+  model_class: 'ddpg'
+  n_sampled_goal: 4
+  goal_selection_strategy: 'future'
+  buffer_size: 10000
+  batch_size: 256
+  gamma: 0.95
+  random_exploration: 0.294
+  actor_lr: !!float 0.0005
+  critic_lr: !!float 0.0005
+  noise_type: 'normal'
+  noise_std: 0.35
+  normalize_observations: true
+  normalize_returns: true
+  nb_eval_steps: 100
+  render: false
+  render_eval: false
+  policy_kwargs: "dict(layers=[128, 128, 128])"
