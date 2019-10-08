@@ -34,6 +34,6 @@
   - - random_exploration
     - 0.3
   - - render
-    - false
+    - true
   - - render_eval
     - false

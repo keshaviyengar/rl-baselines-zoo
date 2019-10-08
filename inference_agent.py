@@ -14,7 +14,7 @@ from utils import create_test_env, get_saved_hyperparams
 # Import ROS tools
 import rospy
 from trajectory_msgs.msg import JointTrajectory, JointTrajectoryPoint
-from geometry_msgs.msg import Point
+from geometry_msgs.msg import Pose
 import rosbag
 
 # ROS node for inferencing
@@ -44,8 +44,13 @@ class Ctm2Inference(object):
                                should_render=True, hyperparams=hyperparams)
         '''
         self.env = HERGoalEnvWrapper(gym.make(env_id, ros_flag=True, render_type='human'))
-
         self.model = HER.load(model_path, env=self.env)
+
+        self.desired_goal_sub = rospy.Subscriber("desired_goal", Pose, self.desired_goal_callback)
+        self.desired_goal = np.array([0, 0, 0])
+
+    def desired_goal_callback(self, msg):
+        self.desired_goal = np.array([msg.position.x / 1000, msg.position.y / 1000, msg.position.z / 1000])
 
     def infer_to_goal(self):
         # Initialize stats variables
@@ -60,12 +65,10 @@ class Ctm2Inference(object):
         df = pd.DataFrame(
             columns=['total steps', 'rewards', 'errors', 'success', 'q goal_1', 'q goal_2', 'q_goal_3', 'q_goal_4'])
 
-        # Set a desired goal here after the reset
-        desired_goal = np.array([0, 0, 0.04])
-
         # Set the observation
-        obs = self.env.reset(goal=desired_goal)
+        obs = self.env.reset(goal=self.desired_goal)
 
+        start_time = rospy.Time.now()
         for t in range(200):
             action, _ = self.model.predict(obs, deterministic=True)
 
@@ -74,7 +77,6 @@ class Ctm2Inference(object):
                 action = np.clip(action, self.env.action_space.low, self.env.action_space.high)
             obs, reward, done, infos = self.env.step(action)
             self.env.render()
-            input("time step done, press enter to continue...")
 
             episode_reward += reward
             ep_len += 1
@@ -87,6 +89,7 @@ class Ctm2Inference(object):
                 q_goals.append(infos.get('q_goal', False))
                 break
 
+        time_taken = rospy.Time.now() - start_time
         df['total steps'] = episode_lengths
         df['rewards'] = episode_rewards
         df['errors'] = errors
@@ -97,9 +100,13 @@ class Ctm2Inference(object):
         df['q goal_4'] = [q[3] for q in q_goals]
 
         print("Final error: ", errors[-1])
+        print("Time taken: ", time_taken.to_sec())
 
 
 if __name__ == '__main__':
     inferencer = Ctm2Inference()
-    inferencer.infer_to_goal()
+    while True:
+        inferencer.infer_to_goal()
+        if rospy.is_shutdown():
+            break
 
