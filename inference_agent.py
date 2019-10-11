@@ -17,6 +17,8 @@ from trajectory_msgs.msg import JointTrajectory, JointTrajectoryPoint
 from geometry_msgs.msg import Pose
 import rosbag
 
+import signal
+
 # ROS node for inferencing
 # Subscribes to a point (or other type of topic) to get desired goal
 # Uses stable-baselines model to attempt to reach goal from current position
@@ -25,6 +27,7 @@ import rosbag
 class Ctm2Inference(object):
     def __init__(self):
         env_id = "Distal-2-Tube-Reach-v0"
+        #env_id = "Distal-1-Tube-Reach-v0"
         seed = np.random.randint(0, 10)
 
         log_dir = None
@@ -38,6 +41,8 @@ class Ctm2Inference(object):
         assert os.path.isfile(model_path), "No model found for {} on {}, path: {}".format(algo, env_id, model_path)
         set_global_seeds(seed)
 
+        signal.signal(signal.SIGINT, handler=self._ctrl_c_handler)
+
         '''
         hyperparams, stats_path = get_saved_hyperparams(stats_path, norm_reward=False, test_mode=True)
         env = create_test_env(env_id, n_envs=1, is_atari=False, stats_path=stats_path, seed=seed, log_dir=log_dir,
@@ -49,21 +54,24 @@ class Ctm2Inference(object):
         self.desired_goal_sub = rospy.Subscriber("desired_goal", Pose, self.desired_goal_callback)
         self.desired_goal = np.array([0, 0, 0])
 
+        # Create a pandas dataframe for storing data
+        self.df = pd.DataFrame(
+            columns=['total steps', 'rewards', 'errors', 'success', 'time_taken', 'q goal_1', 'q goal_2', 'q_goal_3', 'q_goal_4'])
+
+        # Initialize stats variables
+        self.episode_rewards = []
+        self.episode_lengths = []
+        self.errors = []
+        self.successes = []
+        self.q_goals = []
+        self.time_taken = []
+
     def desired_goal_callback(self, msg):
         self.desired_goal = np.array([msg.position.x / 1000, msg.position.y / 1000, msg.position.z / 1000])
 
     def infer_to_goal(self):
-        # Initialize stats variables
         episode_reward = 0.0
-        episode_rewards = []
         ep_len = 0
-        episode_lengths = []
-        errors = []
-        successes = []
-        q_goals = []
-        # Create a pandas dataframe for storing data
-        df = pd.DataFrame(
-            columns=['total steps', 'rewards', 'errors', 'success', 'q goal_1', 'q goal_2', 'q_goal_3', 'q_goal_4'])
 
         # Set the observation
         obs = self.env.reset(goal=self.desired_goal)
@@ -82,25 +90,27 @@ class Ctm2Inference(object):
             ep_len += 1
 
             if done or infos.get('is_success', False):
-                successes.append(infos.get('is_success', False))
-                errors.append(infos.get('error', np.inf))
-                episode_lengths.append(ep_len)
-                episode_rewards.append(episode_reward)
-                q_goals.append(infos.get('q_goal', False))
+                self.successes.append(infos.get('is_success', False))
+                self.errors.append(infos.get('error', np.inf))
+                self.episode_lengths.append(ep_len)
+                self.episode_rewards.append(episode_reward)
+                self.q_goals.append(infos.get('q_goal', False))
+                self.time_taken.append((rospy.Time.now() - start_time).to_sec())
                 break
 
-        time_taken = rospy.Time.now() - start_time
-        df['total steps'] = episode_lengths
-        df['rewards'] = episode_rewards
-        df['errors'] = errors
-        df['success'] = successes
-        df['q goal_1'] = [q[0] for q in q_goals]
-        df['q goal_2'] = [q[1] for q in q_goals]
-        df['q goal_3'] = [q[2] for q in q_goals]
-        df['q goal_4'] = [q[3] for q in q_goals]
+        # df['q goal_1'] = [q[0] for q in q_goals]
+        # df['q goal_2'] = [q[1] for q in q_goals]
+        # df['q goal_3'] = [q[2] for q in q_goals]
+        # df['q goal_4'] = [q[3] for q in q_goals]
 
-        print("Final error: ", errors[-1])
-        print("Time taken: ", time_taken.to_sec())
+    def _ctrl_c_handler(self,  signal, frame):
+        print("Ctrl c pressed!")
+        self.df['total steps'] = self.episode_lengths
+        self.df['rewards'] = self.episode_rewards
+        self.df['errors'] = self.errors
+        self.df['success'] = self.successes
+        self.df["time_taken"] = self.time_taken
+        self.df.to_csv("2-tube.csv")
 
 
 if __name__ == '__main__':
