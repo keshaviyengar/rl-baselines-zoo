@@ -67,7 +67,8 @@ def hyperparam_optimization(algo, model_fn, env_fn, n_trials=10, n_timesteps=500
         print("Sampler: {} - Pruner: {}".format(sampler_method, pruner_method))
 
     study = optuna.create_study(sampler=sampler, pruner=pruner)
-    algo_sampler = HYPERPARAMS_SAMPLER[algo]
+    # algo_sampler = HYPERPARAMS_SAMPLER[algo]
+    algo_sampler = sample_two_tube_noise_params
 
     def objective(trial):
 
@@ -81,6 +82,7 @@ def hyperparam_optimization(algo, model_fn, env_fn, n_trials=10, n_timesteps=500
         if algo == 'ddpg' or trial.model_class == DDPG:
             trial.n_actions = env_fn(n_envs=1).action_space.shape[0]
         kwargs.update(algo_sampler(trial))
+        print("new parameters: ", kwargs)
 
         def callback(_locals, _globals):
             """
@@ -309,7 +311,8 @@ def sample_trpo_params(trial):
     :return: (dict)
     """
     gamma = trial.suggest_categorical('gamma', [0.9, 0.95, 0.98, 0.99, 0.995, 0.999, 0.9999])
-    timesteps_per_batch = trial.suggest_categorical('timesteps_per_batch', [16, 32, 64, 128, 256, 512, 1024, 2048, 4096])
+    timesteps_per_batch = trial.suggest_categorical('timesteps_per_batch',
+                                                    [16, 32, 64, 128, 256, 512, 1024, 2048, 4096])
     max_kl = trial.suggest_loguniform('max_kl', 0.000001, 1)
     ent_coef = trial.suggest_loguniform('ent_coef', 0.00000001, 0.1)
     lam = trial.suggest_categorical('lamdba', [0.8, 0.9, 0.92, 0.95, 0.98, 0.99, 1.0])
@@ -401,6 +404,65 @@ def sample_her_params(trial):
     hyperparams['random_exploration'] = trial.suggest_uniform('random_exploration', 0, 1)
     hyperparams['n_sampled_goal'] = trial.suggest_categorical('n_sampled_goal', [1, 2, 4, 6, 8])
 
+    return hyperparams
+
+
+def sample_one_tube_noise_params(trial):
+    hyperparams = {}
+    # change the noise types
+    # noise_type = trial.suggest_categorical('noise_type', ['ornstein-uhlenbeck', 'normal'])
+    # Set limits of search to action limits
+    noise_extension_std = trial.suggest_uniform('noise_extension_std', 0, 0.001)
+    noise_rotation_std = trial.suggest_uniform('noise_rotation_std', 0, np.deg2rad(5.0))
+
+    hyperparams['action_noise'] = NormalActionNoise(mean=np.zeros(trial.n_actions),
+                                                    sigma=np.array(
+                                                        [noise_rotation_std, noise_extension_std]) * np.ones(
+                                                        trial.n_actions))
+
+    # if noise_type == 'normal':
+    #     hyperparams['action_noise'] = NormalActionNoise(mean=np.zeros(trial.n_actions),
+    #                                                     sigma=np.array(
+    #                                                         [noise_rotation_std, noise_extension_std]) * np.ones(
+    #                                                         trial.n_actions))
+    # elif noise_type == 'ornstein-uhlenbeck':
+    #     hyperparams['action_noise'] = OrnsteinUhlenbeckActionNoise(mean=np.zeros(trial.n_actions),
+    #                                                                sigma=np.array(
+    #                                                                    [noise_rotation_std,
+    #                                                                     noise_extension_std]) * np.ones(
+    #                                                                    trial.n_actions))
+    return hyperparams
+
+
+def sample_two_tube_noise_params(trial):
+    hyperparams = {}
+    # change the noise types
+    # Set limits of search to action limits
+    noise_extension_std = trial.suggest_uniform('noise_extension_std', 0, 0.001)
+    noise_rotation_std = trial.suggest_uniform('noise_rotation_std', 0, np.deg2rad(5.0))
+
+    hyperparams['action_noise'] = NormalActionNoise(mean=np.zeros(trial.n_actions),
+                                                    sigma=np.array(
+                                                        [noise_rotation_std, noise_extension_std, noise_rotation_std,
+                                                         noise_extension_std]) * np.ones(
+                                                        trial.n_actions))
+    return hyperparams
+
+
+def sample_two_tube_varied_noise_params(trial):
+    hyperparams = {}
+    # change the noise types
+    noise_type = trial.suggest_categorical('noise_type', ['normal'])
+    ext_1_noise_std = trial.suggest_uniform('noise_extension_1_std', 0, 0.001)
+    ext_2_noise_std = trial.suggest_uniform('noise_extension_2_std', 0, 0.001)
+    rot_1_std = trial.suggest_uniform('noise_rotation_1_std', 0, np.deg2rad(5.0))
+    rot_2_std = trial.suggest_uniform('noise_rotation_2_std', 0, np.deg2rad(5.0))
+
+    hyperparams['action_noise'] = NormalActionNoise(mean=np.zeros(trial.n_actions),
+                                                    sigma=np.array(
+                                                        [rot_1_std, ext_1_noise_std, rot_2_std,
+                                                         ext_2_noise_std]) * np.ones(
+                                                        trial.n_actions))
     return hyperparams
 
 

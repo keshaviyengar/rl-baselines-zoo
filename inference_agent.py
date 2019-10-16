@@ -69,6 +69,9 @@ class Ctm2Inference(object):
     def desired_goal_callback(self, msg):
         self.desired_goal = np.array([msg.position.x / 1000, msg.position.y / 1000, msg.position.z / 1000])
 
+    def publish_pcl(self):
+        pass
+
     def infer_to_goal(self):
         episode_reward = 0.0
         ep_len = 0
@@ -97,11 +100,6 @@ class Ctm2Inference(object):
                 self.q_goals.append(infos.get('q_goal', False))
                 self.time_taken.append((rospy.Time.now() - start_time).to_sec())
                 break
-
-        # df['q goal_1'] = [q[0] for q in q_goals]
-        # df['q goal_2'] = [q[1] for q in q_goals]
-        # df['q goal_3'] = [q[2] for q in q_goals]
-        # df['q goal_4'] = [q[3] for q in q_goals]
 
     def _ctrl_c_handler(self,  signal, frame):
         print("Ctrl c pressed!")

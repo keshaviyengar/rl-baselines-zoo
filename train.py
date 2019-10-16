@@ -9,12 +9,14 @@ import importlib
 # For pybullet envs
 warnings.filterwarnings("ignore")
 import gym
+
 try:
     import pybullet_envs
 except ImportError:
     pybullet_envs = None
 import numpy as np
 import yaml
+
 try:
     import highway_env
 except ImportError:
@@ -27,10 +29,9 @@ from stable_baselines.common.vec_env import VecFrameStack, SubprocVecEnv, VecNor
 from stable_baselines.ddpg import AdaptiveParamNoiseSpec, NormalActionNoise, OrnsteinUhlenbeckActionNoise
 from stable_baselines.ppo2.ppo2 import constfn
 
-from utils import make_env, ALGOS, linear_schedule, get_latest_run_id,get_wrapper_class
+from utils import make_env, ALGOS, linear_schedule, get_latest_run_id, get_wrapper_class
 from utils.hyperparams_opt import hyperparam_optimization
 from utils.noise import LinearNormalActionNoise
-
 
 from stable_baselines.her.utils import HERGoalEnvWrapper
 
@@ -42,6 +43,7 @@ os.environ["OPENAI_LOG_FORMAT"] = 'stdout,log,csv,tensorboard'
 os.environ["OPENAI_LOGDIR"] = "logs"
 
 from stable_baselines.logger import configure
+
 configure()
 
 
@@ -98,7 +100,9 @@ if __name__ == '__main__':
     # code to register bit flipping env
     from stable_baselines.common.bit_flipping_env import BitFlippingEnv
     from gym import register
-    gym.register(id='Bit-Flipping-v0', entry_point=BitFlippingEnv, kwargs={'n_bits': 10, 'continuous': True, 'max_steps': 10})
+
+    gym.register(id='Bit-Flipping-v0', entry_point=BitFlippingEnv,
+                 kwargs={'n_bits': 10, 'continuous': True, 'max_steps': 10})
 
     env_ids = args.env
     registered_envs = set(gym.envs.registry.env_specs.keys())
@@ -216,6 +220,7 @@ if __name__ == '__main__':
         if 'env_wrapper' in hyperparams.keys():
             del hyperparams['env_wrapper']
 
+
         def create_env(n_envs):
             """
             Create the environment and wrap it if necessary
@@ -243,7 +248,8 @@ if __name__ == '__main__':
                 else:
                     # env = SubprocVecEnv([make_env(env_id, i, args.seed) for i in range(n_envs)])
                     # On most env, SubprocVecEnv does not help and is quite memory hungry
-                    env = DummyVecEnv([make_env(env_id, i, args.seed, wrapper_class=env_wrapper) for i in range(n_envs)])
+                    env = DummyVecEnv(
+                        [make_env(env_id, i, args.seed, wrapper_class=env_wrapper) for i in range(n_envs)])
                 if normalize:
                     if args.verbose > 0:
                         if len(normalize_kwargs) > 0:
@@ -258,6 +264,7 @@ if __name__ == '__main__':
                 print("Stacking {} frames".format(n_stack))
                 del hyperparams['frame_stack']
             return env
+
 
         env = create_env(n_envs)
         eval_env = None
@@ -284,7 +291,9 @@ if __name__ == '__main__':
                 if 'lin' in noise_type:
                     hyperparams['action_noise'] = LinearNormalActionNoise(mean=np.zeros(n_actions),
                                                                           sigma=noise_std * np.ones(n_actions),
-                                                                          final_sigma=hyperparams.get('noise_std_final', 0.0) * np.ones(n_actions),
+                                                                          final_sigma=hyperparams.get('noise_std_final',
+                                                                                                      0.0) * np.ones(
+                                                                              n_actions),
                                                                           max_steps=n_timesteps)
                 else:
                     hyperparams['action_noise'] = NormalActionNoise(mean=np.zeros(n_actions),
@@ -327,6 +336,7 @@ if __name__ == '__main__':
                 return ALGOS[args.algo](env=create_env(n_envs), tensorboard_log=tensorboard_log,
                                         verbose=0, **kwargs)
 
+
             data_frame = hyperparam_optimization(args.algo, create_model, create_env, n_trials=args.n_trials,
                                                  n_timesteps=n_timesteps, hyperparams=hyperparams,
                                                  n_jobs=args.n_jobs, seed=args.seed,
@@ -347,7 +357,8 @@ if __name__ == '__main__':
         else:
             # Train an agent from scratch
             if algo_ == 'ddpg':
-                model = ALGOS[args.algo](env=env, eval_env=eval_env, tensorboard_log=tensorboard_log, verbose=args.verbose, **hyperparams)
+                model = ALGOS[args.algo](env=env, eval_env=eval_env, tensorboard_log=tensorboard_log,
+                                         verbose=args.verbose, **hyperparams)
             else:
                 model = ALGOS[args.algo](env=env, tensorboard_log=tensorboard_log, verbose=args.verbose, **hyperparams)
 
@@ -355,8 +366,10 @@ if __name__ == '__main__':
         if args.log_interval > -1:
             kwargs['log_interval'] = args.log_interval
 
-        callback_visualizer = CallbackVisualizer()
-        kwargs['callback'] = callback_visualizer.callback
+        # If the render type is not done, do the visualization callback with ros
+        if args.render_type != '':
+            callback_visualizer = CallbackVisualizer()
+            kwargs['callback'] = callback_visualizer.callback
 
         model.learn(n_timesteps, **kwargs)
 
