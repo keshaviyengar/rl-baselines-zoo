@@ -284,7 +284,7 @@ class CallbackVisualizer(object):
 
         self.q_value_pcl_pub = rospy.Publisher('ctm/q_value_pcl', PointCloud2, queue_size=10)
         self.error_pcl_pub = rospy.Publisher('ctm/error_pcl', PointCloud2, queue_size=10)
-        rospy.init_node("pcl_visualizer", anonymous=True)
+        # rospy.init_node("pcl_visualizer", anonymous=True)
 
     def callback(self, _locals, _globals):
         self._locals = _locals
