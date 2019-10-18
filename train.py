@@ -88,12 +88,12 @@ if __name__ == '__main__':
     parser.add_argument('--verbose', help='Verbose mode (0: no output, 1: INFO)', default=1,
                         type=int)
     parser.add_argument('--gym-packages', type=str, nargs='+', default=[],
-                        help='Additional external Gym environemnt package modules to import (e.g. gym_minigrid)')
+                        help='Additional external Gym environment package modules to import (e.g. gym_minigrid)')
     parser.add_argument('--render-type', help='Choose a rendering type during evaluation: empty, record or human',
                         default='', type=str)
     args = parser.parse_args()
 
-    # Going through custom gym packages to let them register in the global registory
+    # Going through custom gym packages to let them register in the global registry
     for env_module in args.gym_packages:
         importlib.import_module(env_module)
 

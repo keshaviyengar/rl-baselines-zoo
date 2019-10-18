@@ -217,7 +217,8 @@ Distal-2-Tube-Reach-v0:
   actor_lr: !!float 0.0005
   critic_lr: !!float 0.0005
   noise_type: 'normal'
-  noise_std: [0.35, 0.35, 0.35, 0.35]
+  # Hyperparameter search single noise
+  noise_std: [0.000660173537492685, 0.02531404666064546]
   normalize_observations: true
   normalize_returns: true
   nb_eval_steps: 100
