@@ -39,12 +39,7 @@ import ctm2_envs
 from utils.callback_visualizer import CallbackVisualizer
 import pandas as pd
 
-os.environ["OPENAI_LOG_FORMAT"] = 'stdout,log,csv,tensorboard'
-os.environ["OPENAI_LOGDIR"] = "logs"
-
 from stable_baselines.logger import configure
-
-configure()
 
 
 def callback(_locals, _globals):
@@ -92,6 +87,11 @@ if __name__ == '__main__':
     parser.add_argument('--render-type', help='Choose a rendering type during evaluation: empty, record or human',
                         default='', type=str)
     args = parser.parse_args()
+
+    # Set log directory
+    os.environ["OPENAI_LOG_FORMAT"] = 'stdout,log,csv'
+    os.environ["OPENAI_LOGDIR"] = args.tensorboard_log
+    configure()
 
     # Going through custom gym packages to let them register in the global registry
     for env_module in args.gym_packages:
@@ -368,7 +368,7 @@ if __name__ == '__main__':
 
         # If the render type is not done, do the visualization callback with ros
         if args.render_type != '':
-            callback_visualizer = CallbackVisualizer()
+            callback_visualizer = CallbackVisualizer(args.log_folder)
             kwargs['callback'] = callback_visualizer.callback
 
         model.learn(n_timesteps, **kwargs)

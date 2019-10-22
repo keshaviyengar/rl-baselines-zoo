@@ -34,10 +34,11 @@ class Ctm2Inference(object):
         folder = "trained_agents"
         algo = "her"
         log_path = os.path.join(folder, algo)
-        model_path = "{}/{}.pkl".format(log_path, env_id)
-        stats_path = os.path.join(log_path, env_id)
+        # model_path = "{}/{}.pkl".format(log_path, env_id)
+        model_path = "/home/keshav/ctm2-stable-baselines/saved-runs/distal-2-tube-varied-noise/" + env_id + ".pkl"
+        # stats_path = os.path.join(log_path, env_id)
 
-        assert os.path.isdir(log_path), "The {} folder was not found".format(log_path)
+        # assert os.path.isdir(log_path), "The {} folder was not found".format(log_path)
         assert os.path.isfile(model_path), "No model found for {} on {}, path: {}".format(algo, env_id, model_path)
         set_global_seeds(seed)
 

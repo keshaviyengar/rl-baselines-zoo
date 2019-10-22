@@ -267,9 +267,10 @@ def write_pcd(filename, pointcloud, overwrite=False, viewpoint=None,
 # Publish training point cloud (reached cartesian point and associated error / q-value)
 # Publish a voxel grid of training locations
 class CallbackVisualizer(object):
-    def __init__(self):
+    def __init__(self, log_folder):
         self._locals = None
         self._globals = None
+        self._log_folder = log_folder
         self.pcl_points = np.array([])
         self.ag_points = np.array([])
         self.errors = np.array([])
@@ -322,8 +323,8 @@ class CallbackVisualizer(object):
         self.q_value_pcl = pcl2.create_cloud(header, self.fields, ag_pcl_points.transpose().tolist())
         self.error_pcl = pcl2.create_cloud(header, self.fields, error_pcl_points.transpose().tolist())
 
-        write_pcd('error.pcd', self.q_value_pcl, overwrite=True)
-        write_pcd('ag.pcd', self.error_pcl, overwrite=True)
+        write_pcd(str(self._log_folder) + '/pcds/error.pcd', self.q_value_pcl, overwrite=True)
+        write_pcd(str(self._log_folder) + '/pcds/q_value.pcd', self.error_pcl, overwrite=True)
 
     def publish_point_clouds(self):
         self.q_value_pcl_pub.publish(self.q_value_pcl)
