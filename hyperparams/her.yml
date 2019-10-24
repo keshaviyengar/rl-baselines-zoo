@@ -149,7 +149,7 @@ FetchReachDense-v1:
 
 
 Distal-1-Tube-Reach-v0:
-  n_timesteps: !!float 1e6
+  n_timesteps: !!float 2e6
   policy: 'MlpPolicy'
   model_class: 'ddpg'
   n_sampled_goal: 4
@@ -166,46 +166,11 @@ Distal-1-Tube-Reach-v0:
   normalize_returns: true
   nb_eval_steps: 100
   render: false
-  render_eval: True
+  render_eval: false
   policy_kwargs: "dict(layers=[128, 128, 128])"
 
-  # Distal-1-Tube-Reach-v0:
-  #   n_timesteps: !!float 60000
-  #   policy: 'MlpPolicy'
-  #   model_class: 'sac'
-  #   learning_rate: !!float 3e-4
-  #   buffer_size: 10000
-  #   batch_size: 256
-  #   ent_coef: 'auto'
-  #   train_freq: 1
-  #   gradient_steps: 1
-  #   learning_starts: 0
-  #   noise_type: 'normal'
-  #   noise_std: 0.35
-
-# Distal-2-Tube-Reach-v0:
-#   n_timesteps: !!float 10000
-#   policy: 'MlpPolicy'
-#   model_class: 'ddpg'
-#   n_sampled_goal: 8
-#   goal_selection_strategy: 'future'
-#   buffer_size: 10000
-#   batch_size: 256
-#   gamma: 0.95
-#   random_exploration: 0.294
-#   actor_lr: !!float 0.0005
-#   critic_lr: !!float 0.0005
-#   noise_type: 'normal'
-#   noise_std: 0.35
-#   normalize_observations: true
-#   normalize_returns: true
-#   nb_eval_steps: 100
-#   render: false
-#   render_eval: true
-#   policy_kwargs: "dict(layers=[128, 128, 128])"
-
 Distal-2-Tube-Reach-v0:
-  n_timesteps: !!float 1e6
+  n_timesteps: !!float 2e6
   policy: 'MlpPolicy'
   model_class: 'ddpg'
   n_sampled_goal: 4
@@ -218,12 +183,57 @@ Distal-2-Tube-Reach-v0:
   critic_lr: !!float 0.0005
   noise_type: 'normal'
   # Hyperparameter search single noise
-  noise_std: 0.35
-  #noise_std: [0.02531404666064546, 0.000660173537492685, 0.02531404666064546, 0.000660173537492685]
+  # noise_std: 0.35
+  noise_std: [0.025, 0.00065, 0.025, 0.00065]
   normalize_observations: true
   normalize_returns: true
   nb_eval_steps: 100
   render: false
   render_eval: false
   policy_kwargs: "dict(layers=[128, 128, 128])"
-  n_envs: 5
+
+Distal-3-Tube-Reach-v0:
+  n_timesteps: !!float 2e6
+  policy: 'MlpPolicy'
+  model_class: 'ddpg'
+  n_sampled_goal: 4
+  goal_selection_strategy: 'future'
+  buffer_size: 10000
+  batch_size: 256
+  gamma: 0.95
+  random_exploration: 0.294
+  actor_lr: !!float 0.0005
+  critic_lr: !!float 0.0005
+  noise_type: 'normal'
+  # Hyperparameter search single noise
+  # noise_std: 0.35
+  noise_std: [0.025, 0.00065, 0.025, 0.00065, 0.025, 0.00065]
+  normalize_observations: true
+  normalize_returns: true
+  nb_eval_steps: 100
+  render: false
+  render_eval: false
+  policy_kwargs: "dict(layers=[128, 128, 128])"
+
+Distal-4-Tube-Reach-v0:
+  n_timesteps: !!float 2e6
+  policy: 'MlpPolicy'
+  model_class: 'ddpg'
+  n_sampled_goal: 4
+  goal_selection_strategy: 'future'
+  buffer_size: 10000
+  batch_size: 256
+  gamma: 0.95
+  random_exploration: 0.294
+  actor_lr: !!float 0.0005
+  critic_lr: !!float 0.0005
+  noise_type: 'normal'
+  # Hyperparameter search single noise
+  # noise_std: 0.35
+  noise_std: [0.025, 0.00065, 0.025, 0.00065, 0.025, 0.00065, 0.025, 0.00065]
+  normalize_observations: true
+  normalize_returns: true
+  nb_eval_steps: 100
+  render: false
+  render_eval: false
+  policy_kwargs: "dict(layers=[128, 128, 128])"
