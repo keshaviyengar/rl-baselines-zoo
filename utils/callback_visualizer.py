@@ -323,8 +323,8 @@ class CallbackVisualizer(object):
         self.q_value_pcl = pcl2.create_cloud(header, self.fields, ag_pcl_points.transpose().tolist())
         self.error_pcl = pcl2.create_cloud(header, self.fields, error_pcl_points.transpose().tolist())
 
-        write_pcd(str(self._log_folder) + '/pcds/error.pcd', self.q_value_pcl, overwrite=True)
-        write_pcd(str(self._log_folder) + '/pcds/q_value.pcd', self.error_pcl, overwrite=True)
+        write_pcd(str(self._log_folder) + '/error.pcd', self.q_value_pcl, overwrite=True)
+        write_pcd(str(self._log_folder) + '/q_value.pcd', self.error_pcl, overwrite=True)
 
     def publish_point_clouds(self):
         self.q_value_pcl_pub.publish(self.q_value_pcl)
