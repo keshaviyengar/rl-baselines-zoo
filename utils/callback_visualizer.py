@@ -72,9 +72,6 @@ class CallbackVisualizer(object):
         q_pcl_points[:, 3] = q_rgb_values
         error_pcl_points[:, 3] = error_rgb_values
 
-        print("size of error: ", str(len(error_pcl_points)))
-        print("size of q_value: ", str(len(q_pcl_points)))
-
         #q_value_cloud = pypcd.make_xyz_rgb_point_cloud(q_pcl_points, metadata={'width': q_pcl_points.shape[1], 'points': q_pcl_points.shape[1]})
         q_value_cloud = pypcd.make_xyz_rgb_point_cloud(q_pcl_points)
         q_value_cloud.save_pcd(self._log_folder + "/q_value.pcd", compression='binary')
