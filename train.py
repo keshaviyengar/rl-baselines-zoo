@@ -366,10 +366,13 @@ if __name__ == '__main__':
         if args.log_interval > -1:
             kwargs['log_interval'] = args.log_interval
 
-        # If the render type is not done, do the visualization callback with ros
+        # If render type is not none, we need to set ros flag to publish point clouds, else we don't need ros
         if args.render_type != '':
-            callback_visualizer = CallbackVisualizer(args.log_folder)
-            kwargs['callback'] = callback_visualizer.callback
+            callback_visualizer = CallbackVisualizer(args.log_folder, ros_flag=True)
+        else:
+            callback_visualizer = CallbackVisualizer(args.log_folder, ros_flag=False)
+
+        kwargs['callback'] = callback_visualizer.callback
 
         model.learn(n_timesteps, **kwargs)
 
