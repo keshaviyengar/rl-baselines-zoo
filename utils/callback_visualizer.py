@@ -50,7 +50,7 @@ class CallbackVisualizer(object):
         q_val = _locals['q_value']
         self.q_values = np.append(self.q_values, q_val)
 
-        if _locals['total_steps'] % 1000 == 0:
+        if _locals['total_steps'] % 10000 == 0:
             self.save_point_clouds()
             if self._ros_flag:
                 self.publish_point_clouds()
