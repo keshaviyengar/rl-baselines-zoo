@@ -30,15 +30,8 @@ class Ctm2Inference(object):
         #env_id = "Distal-1-Tube-Reach-v0"
         seed = np.random.randint(0, 10)
 
-        log_dir = None
-        folder = "trained_agents"
-        algo = "her"
-        log_path = os.path.join(folder, algo)
-        # model_path = "{}/{}.pkl".format(log_path, env_id)
-        model_path = "/home/keshav/ctm2-stable-baselines/saved-runs/distal-2-tube-varied-noise/" + env_id + ".pkl"
-        # stats_path = os.path.join(log_path, env_id)
-
-        # assert os.path.isdir(log_path), "The {} folder was not found".format(log_path)
+        algo = 'her'
+        model_path = "/home/keshav/ctm2-stable-baselines/saved-runs/2-gaussian-varied-0.02-0.0009-0.03-0.0004/" + env_id + ".pkl"
         assert os.path.isfile(model_path), "No model found for {} on {}, path: {}".format(algo, env_id, model_path)
         set_global_seeds(seed)
 
