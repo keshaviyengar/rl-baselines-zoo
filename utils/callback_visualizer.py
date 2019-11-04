@@ -31,9 +31,9 @@ class CallbackVisualizer(object):
             self.q_value_pcl_pub = rospy.Publisher('ctm/q_value_pcl', PointCloud2, queue_size=10)
             self.error_pcl_pub = rospy.Publisher('ctm/error_pcl', PointCloud2, queue_size=10)
 
-        self.ag_points = np.empty([2000000 * 19, 3], dtype=float)
-        self.errors = np.empty(2000000 * 19, dtype=float)
-        self.q_values = np.empty(2000000 * 19, dtype=float)
+        self.ag_points = np.empty([2000000 , 3], dtype=float)
+        self.errors = np.empty(2000000, dtype=float)
+        self.q_values = np.empty(2000000, dtype=float)
 
         self.q_value_pcl = None
         self.error_pcl = None
@@ -43,7 +43,7 @@ class CallbackVisualizer(object):
     def callback(self, _locals, _globals):
         self._locals = _locals
         self._globals = _globals
-        self.current_step = _locals['step'] - 1
+        self.current_step = _locals['total_steps'] - 1
         observation = _locals['self'].env.convert_obs_to_dict(_locals['new_obs'])
         ag = observation['achieved_goal'] * MM_TO_M
         self.ag_points[self.current_step, :] = ag
