@@ -56,6 +56,8 @@ class CallbackVisualizer(object):
             self.save_point_clouds()
             if self._ros_flag:
                 self.publish_point_clouds()
+            # Save model periodically
+            _locals['self'].save(self._log_folder + '/' + 'temp_saved_model.pkl')
 
     def save_point_clouds(self):
         ag_points = self.ag_points[:self.current_step, :]
