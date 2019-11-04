@@ -86,6 +86,8 @@ if __name__ == '__main__':
                         help='Additional external Gym environment package modules to import (e.g. gym_minigrid)')
     parser.add_argument('--render-type', help='Choose a rendering type during evaluation: empty, record or human',
                         default='', type=str)
+    parser.add_argument('--experiment-id', help='Choose the experiment number. Refer to the excel sheet.',
+                        default='', type=int)
     args = parser.parse_args()
 
     # Set log directory
@@ -154,6 +156,66 @@ if __name__ == '__main__':
 
         # Sort hyperparams that will be saved
         saved_hyperparams = OrderedDict([(key, hyperparams[key]) for key in sorted(hyperparams.keys())])
+
+        if args.experiment_id == 1:
+            print("two tube gaussian noise 0.35 std")
+            hyperparams['noise_type'] = 'normal'
+            hyperparams['noise_std'] = 0.35
+        elif args.experiment_id == 2:
+            print("two tube gaussian seperate noise 0.025, 0.00065 std")
+            hyperparams['noise_type'] = 'normal'
+            hyperparams['noise_std'] = [0.025, 0.00065, 0.025, 0.00065]
+        elif args.experiment_id == 3:
+            print("two tube varied gaussian noise 0.0009, 0.0004 std")
+            hyperparams['noise_type'] = 'normal'
+            hyperparams['noise_std'] = [0.025, 0.0009, 0.025, 0.0004]
+        elif args.experiment_id == 4:
+            print("two tube parameter noise 0.24 std")
+            hyperparams['noise_type'] = 'adaptive-param'
+            hyperparams['noise_std'] = 0.24
+        elif args.experiment_id == 5:
+            print("two tube OU noise")
+            hyperparams['noise_type'] = 'ornstein-uhlenbeck'
+        elif args.experiment_id == 6:
+            print("three tube gaussian noise 0.35 std")
+            hyperparams['noise_type'] = 'normal'
+            hyperparams['noise_std'] = 0.35
+        elif args.experiment_id == 7:
+            print("three tube gaussian noise 0.025, 0.00065 std")
+            hyperparams['noise_type'] = 'normal'
+            hyperparams['noise_std'] = [0.025, 0.00065, 0.025, 0.00065, 0.025, 0.00065]
+        elif args.experiment_id == 8:
+            print("three tube varied gaussian noise 0.0009, 0.0009, 0.0004 std")
+            hyperparams['noise_type'] = 'normal'
+            hyperparams['noise_std'] = [0.025, 0.0009, 0.025, 0.0009, 0.025, 0.0004]
+        elif args.experiment_id == 9:
+            print("three tube parameter noise 0.24 std")
+            hyperparams['noise_type'] = 'adaptive-param'
+            hyperparams['noise_std'] = 0.24
+        elif args.experiment_id == 10:
+            print("three tube OU noise")
+            hyperparams['noise_type'] = 'ornstein-uhlenbeck'
+        elif args.experiment_id == 11:
+            print("four tube gaussian noise 0.35 std")
+            hyperparams['noise_type'] = 'normal'
+            hyperparams['noise_std'] = 0.35
+        elif args.experiment_id == 12:
+            print("four tube gaussian noise 0.025, 0.00065 std")
+            hyperparams['noise_type'] = 'normal'
+            hyperparams['noise_std'] = [0.025, 0.00065, 0.025, 0.00065, 0.025, 0.00065, 0.025, 0.00065]
+        elif args.experiment_id == 13:
+            print("four tube varied gaussian noise 0.0009, 0.0009, 0.0009, 0.0004 std")
+            hyperparams['noise_type'] = 'normal'
+            hyperparams['noise_std'] = [0.025, 0.0009, 0.025, 0.0009, 0.025, 0.0009, 0.025, 0.0009]
+        elif args.experiment_id == 14:
+            print("four tube parameter noise 0.24 std")
+            hyperparams['noise_type'] = 'adaptive-param'
+            hyperparams['noise_std'] = 0.24
+        elif args.experiment_id == 15:
+            print("four tube OU noise")
+            hyperparams['noise_type'] = 'ornstein-uhlenbeck'
+        else:
+            AssertionError('incorrect experiment id.')
 
         algo_ = args.algo
         # HER is only a wrapper around an algo
@@ -299,8 +361,40 @@ if __name__ == '__main__':
                     hyperparams['action_noise'] = NormalActionNoise(mean=np.zeros(n_actions),
                                                                     sigma=noise_std * np.ones(n_actions))
             elif 'ornstein-uhlenbeck' in noise_type:
-                hyperparams['action_noise'] = OrnsteinUhlenbeckActionNoise(mean=np.zeros(n_actions),
-                                                                           sigma=noise_std * np.ones(n_actions))
+                if args.experiment_id == 5:
+                    hyperparams['action_noise'] = OrnsteinUhlenbeckActionNoise(mean=np.zeros(n_actions),
+                                                                               sigma=[0.025, 0.00065, 0.025,
+                                                                                      0.00065] * np.ones(
+                                                                                   n_actions),
+                                                                               theta=0.03, dt=1,
+                                                                               initial_noise=[0, -0.10, 0, -0.05])
+                elif args.experiment_id == 10:
+                    hyperparams['action_noise'] = OrnsteinUhlenbeckActionNoise(mean=np.zeros(n_actions),
+                                                                               sigma=[0.025, 0.00065, 0.025, 0.00065,
+                                                                                      0.025,
+                                                                                      0.00065] * np.ones(
+                                                                                   n_actions),
+                                                                               theta=0.03, dt=1,
+                                                                               initial_noise=[0, -0.12, 0, -0.07, 0,
+                                                                                              -0.04])
+
+                elif args.experiment_id == 15:
+                    hyperparams['action_noise'] = OrnsteinUhlenbeckActionNoise(mean=np.zeros(n_actions),
+                                                                               sigma=[0.025, 0.00065, 0.025, 0.00065,
+                                                                                      0.025,
+                                                                                      0.00065, 0.025,
+                                                                                      0.00065] * np.ones(
+                                                                                   n_actions),
+                                                                               theta=0.03, dt=1,
+                                                                               initial_noise=[0., - 0.15, 0, -0.10, 0,
+                                                                                              -0.05, 0,
+                                                                                              -0.025])
+
+                else:
+                    AssertionError("Incorrect experiment id for OU noise.")
+
+            #     hyperparams['action_noise'] = OrnsteinUhlenbeckActionNoise(mean=np.zeros(n_actions),
+            #                                                                sigma=noise_std * np.ones(n_actions))
             else:
                 raise RuntimeError('Unknown noise type "{}"'.format(noise_type))
             print("Applying {} noise with std {}".format(noise_type, noise_std))

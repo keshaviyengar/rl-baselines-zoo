@@ -227,10 +227,10 @@ Distal-4-Tube-Reach-v0:
   random_exploration: 0.294
   actor_lr: !!float 0.0005
   critic_lr: !!float 0.0005
-  noise_type: 'normal'
+  noise_type: 'adaptive-param'
   # Hyperparameter search single noise
-  noise_std: 0.35
-  # noise_std: [0.025, 0, 0.025, 0, 0.025, 0, 0.025, 0]
+  noise_std: 0.24
+  # noise_std: [0.025, 0.00065, 0.025, 0.00065, 0.025, 0.00065, 0.025, 0.00065]
   normalize_observations: true
   normalize_returns: true
   nb_eval_steps: 150

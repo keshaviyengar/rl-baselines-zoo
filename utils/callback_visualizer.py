@@ -31,42 +31,49 @@ class CallbackVisualizer(object):
             self.q_value_pcl_pub = rospy.Publisher('ctm/q_value_pcl', PointCloud2, queue_size=10)
             self.error_pcl_pub = rospy.Publisher('ctm/error_pcl', PointCloud2, queue_size=10)
 
-        self.pcl_points = np.array([])
-        self.ag_points = np.array([])
-        self.errors = np.array([])
-        self.q_values = np.array([])
+        self.ag_points = np.empty([2000000 * 19, 3], dtype=float)
+        self.errors = np.empty(2000000 * 19, dtype=float)
+        self.q_values = np.empty(2000000 * 19, dtype=float)
 
         self.q_value_pcl = None
         self.error_pcl = None
 
+        self.current_step = 0
+
     def callback(self, _locals, _globals):
         self._locals = _locals
         self._globals = _globals
+        self.current_step = _locals['step'] - 1
         observation = _locals['self'].env.convert_obs_to_dict(_locals['new_obs'])
         ag = observation['achieved_goal'] * MM_TO_M
-        self.ag_points = np.append(self.ag_points, ag)
+        self.ag_points[self.current_step, :] = ag
         error = _locals['info']['error']
-        self.errors = np.append(self.errors, error)
+        self.errors[self.current_step] = error
         q_val = _locals['q_value']
-        self.q_values = np.append(self.q_values, q_val)
+        self.q_values[self.current_step] = q_val
 
         if _locals['total_steps'] % 10000 == 0:
             self.save_point_clouds()
             if self._ros_flag:
                 self.publish_point_clouds()
+            # Save model periodically
+            _locals['self'].save(self._log_folder + '/' + 'temp_saved_model.pkl')
 
     def save_point_clouds(self):
-        ag_points = self.ag_points.reshape(-1, 3)
+        ag_points = self.ag_points[:self.current_step, :]
+        error_values = self.errors[:self.current_step]
+        q_val_values = self.q_values[:self.current_step]
+
         q_pcl_points = np.ndarray((ag_points.shape[0], 4), dtype=np.float32)
         error_pcl_points = np.ndarray((ag_points.shape[0], 4), dtype=np.float32)
         q_pcl_points[:, 0:3] = ag_points
         error_pcl_points[:, 0:3] = ag_points
         q_rgb_values = np.array([])
         error_rgb_values = np.array([])
-        for val in self.q_values:
-            q_rgb = pypcd.encode_rgb_for_pcl(self._value_to_int8_rgba(val, np.min(self.q_values), np.max(self.q_values)))
+        for val in q_val_values:
+            q_rgb = pypcd.encode_rgb_for_pcl(self._value_to_int8_rgba(val, np.min(q_val_values), np.max(q_val_values)))
             q_rgb_values = np.append(q_rgb_values, q_rgb)
-            error_rgb = pypcd.encode_rgb_for_pcl(self._value_to_int8_rgba(val, np.min(self.errors), np.max(self.errors)))
+            error_rgb = pypcd.encode_rgb_for_pcl(self._value_to_int8_rgba(val, np.min(error_values), np.max(error_values)))
             error_rgb_values = np.append(error_rgb_values, error_rgb)
 
         q_pcl_points[:, 3] = q_rgb_values
