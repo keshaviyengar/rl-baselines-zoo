@@ -183,8 +183,8 @@ Distal-2-Tube-Reach-v0:
   critic_lr: !!float 0.0005
   noise_type: 'normal'
   # Hyperparameter search single noise
-  # noise_std: 0.35
-  noise_std: [0.025, 0.00065, 0.025, 0.00065]
+  noise_std: 0.35
+  # noise_std: [0.025, 0.00065, 0.025, 0.00065]
   normalize_observations: true
   normalize_returns: true
   nb_eval_steps: 100
@@ -206,11 +206,11 @@ Distal-3-Tube-Reach-v0:
   critic_lr: !!float 0.0005
   noise_type: 'normal'
   # Hyperparameter search single noise
-  # noise_std: 0.35
-  noise_std: [0.025, 0.00065, 0.025, 0.00065, 0.025, 0.00065]
+  noise_std: 0.35
+  # noise_std: [0.025, 0.0009, 0.025, 0.0004, 0.025, 0.0004]
   normalize_observations: true
   normalize_returns: true
-  nb_eval_steps: 100
+  nb_eval_steps: 125
   render: false
   render_eval: false
   policy_kwargs: "dict(layers=[128, 128, 128])"
@@ -229,11 +229,11 @@ Distal-4-Tube-Reach-v0:
   critic_lr: !!float 0.0005
   noise_type: 'normal'
   # Hyperparameter search single noise
-  # noise_std: 0.35
-  noise_std: [0.025, 0.00065, 0.025, 0.00065, 0.025, 0.00065, 0.025, 0.00065]
+  noise_std: 0.35
+  # noise_std: [0.025, 0, 0.025, 0, 0.025, 0, 0.025, 0]
   normalize_observations: true
   normalize_returns: true
-  nb_eval_steps: 100
+  nb_eval_steps: 150
   render: false
   render_eval: false
   policy_kwargs: "dict(layers=[128, 128, 128])"
