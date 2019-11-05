@@ -3,6 +3,7 @@ import numpy as np
 
 from pypcd import pypcd
 import time
+from mpi4py import MPI
 
 import os
 from functools import reduce
@@ -40,9 +41,9 @@ class CallbackVisualizer(object):
         self.error_pcl = None
 
         self.current_step = 0
+        self.save_pcd_model_intervals = [5e5, 1e6, 1.5e6, 1999998, 1999999, 2e6]
 
     def callback(self, _locals, _globals):
-        t0 = time.time()
         self._locals = _locals
         self._globals = _globals
         self.current_step = _locals['total_steps'] - 1
@@ -53,16 +54,14 @@ class CallbackVisualizer(object):
         self.errors[self.current_step] = error
         q_val = _locals['q_value']
         self.q_values[self.current_step] = q_val
-        t1 = time.time()
+        rank = MPI.COMM_WORLD.Get_rank()
 
-        if _locals['total_steps'] % 1000 == 0:
-            print('Time taken to store numpy array: ', time.time() - t0)
+        if _locals['total_steps'] in self.save_pcd_model_intervals and rank == 0:
             self.save_point_clouds()
             if self._ros_flag:
                 self.publish_point_clouds()
             # Save model periodically
             _locals['self'].save(self._log_folder + '/' + 'temp_saved_model.pkl')
-            print('Time taken for saving pcd and model: ', time.time() - t1)
 
     def save_point_clouds(self):
         ag_points = self.ag_points[:self.current_step, :]
@@ -84,10 +83,8 @@ class CallbackVisualizer(object):
         q_pcl_points[:, 3] = q_rgb_values
         error_pcl_points[:, 3] = error_rgb_values
 
-        #q_value_cloud = pypcd.make_xyz_rgb_point_cloud(q_pcl_points, metadata={'width': q_pcl_points.shape[1], 'points': q_pcl_points.shape[1]})
         q_value_cloud = pypcd.make_xyz_rgb_point_cloud(q_pcl_points)
         q_value_cloud.save_pcd(self._log_folder + "/q_value.pcd", compression='binary')
-        #error_cloud = pypcd.make_xyz_rgb_point_cloud(error_pcl_points, metadata={'width': error_pcl_points.shape[1], 'points': error_pcl_points.shape[1]})
         error_cloud = pypcd.make_xyz_rgb_point_cloud(error_pcl_points)
         error_cloud.save_pcd(self._log_folder + "/error.pcd", compression='binary')
 
