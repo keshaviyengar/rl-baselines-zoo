@@ -2,6 +2,7 @@ import struct
 import numpy as np
 
 from pypcd import pypcd
+import time
 
 import os
 from functools import reduce
@@ -31,9 +32,9 @@ class CallbackVisualizer(object):
             self.q_value_pcl_pub = rospy.Publisher('ctm/q_value_pcl', PointCloud2, queue_size=10)
             self.error_pcl_pub = rospy.Publisher('ctm/error_pcl', PointCloud2, queue_size=10)
 
-        self.ag_points = np.empty([2000000 , 3], dtype=float)
-        self.errors = np.empty(2000000, dtype=float)
-        self.q_values = np.empty(2000000, dtype=float)
+        self.ag_points = np.empty([2000000 * 19, 3], dtype=float)
+        self.errors = np.empty(2000000 * 19, dtype=float)
+        self.q_values = np.empty(2000000 * 19, dtype=float)
 
         self.q_value_pcl = None
         self.error_pcl = None
@@ -41,6 +42,7 @@ class CallbackVisualizer(object):
         self.current_step = 0
 
     def callback(self, _locals, _globals):
+        t0 = time.time()
         self._locals = _locals
         self._globals = _globals
         self.current_step = _locals['total_steps'] - 1
@@ -51,13 +53,16 @@ class CallbackVisualizer(object):
         self.errors[self.current_step] = error
         q_val = _locals['q_value']
         self.q_values[self.current_step] = q_val
+        t1 = time.time()
 
-        if _locals['total_steps'] % 10000 == 0:
+        if _locals['total_steps'] % 1000 == 0:
+            print('Time taken to store numpy array: ', time.time() - t0)
             self.save_point_clouds()
             if self._ros_flag:
                 self.publish_point_clouds()
             # Save model periodically
             _locals['self'].save(self._log_folder + '/' + 'temp_saved_model.pkl')
+            print('Time taken for saving pcd and model: ', time.time() - t1)
 
     def save_point_clouds(self):
         ag_points = self.ag_points[:self.current_step, :]
