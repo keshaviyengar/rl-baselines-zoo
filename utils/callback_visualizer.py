@@ -41,7 +41,8 @@ class CallbackVisualizer(object):
         self.error_pcl = None
 
         self.current_step = 0
-        self.save_pcd_model_intervals = [5e5, 1e6, 1.5e6, 1999998, 1999999, 2e6]
+        self.save_pcd_model_intervals = [0, 5e5, 1.0e6, 1.5e6, 1999998, 2e6]
+        self.last_save_interval = 0
 
     def callback(self, _locals, _globals):
         self._locals = _locals
@@ -64,9 +65,10 @@ class CallbackVisualizer(object):
             _locals['self'].save(self._log_folder + '/' + 'temp_saved_model.pkl')
 
     def save_point_clouds(self):
-        ag_points = self.ag_points[:self.current_step, :]
-        error_values = self.errors[:self.current_step]
-        q_val_values = self.q_values[:self.current_step]
+        last_save = self.save_pcd_model_intervals[self.last_save_interval]
+        ag_points = self.ag_points[last_save:self.current_step, :]
+        error_values = self.errors[last_save:self.current_step]
+        q_val_values = self.q_values[last_save:self.current_step]
 
         q_pcl_points = np.ndarray((ag_points.shape[0], 4), dtype=np.float32)
         error_pcl_points = np.ndarray((ag_points.shape[0], 4), dtype=np.float32)
@@ -84,9 +86,11 @@ class CallbackVisualizer(object):
         error_pcl_points[:, 3] = error_rgb_values
 
         q_value_cloud = pypcd.make_xyz_rgb_point_cloud(q_pcl_points)
-        q_value_cloud.save_pcd(self._log_folder + "/q_value.pcd", compression='binary')
+        q_value_cloud.save_pcd(self._log_folder + "/q_value_" + str(self.current_step + 1) + ".pcd", compression='binary')
         error_cloud = pypcd.make_xyz_rgb_point_cloud(error_pcl_points)
-        error_cloud.save_pcd(self._log_folder + "/error.pcd", compression='binary')
+        error_cloud.save_pcd(self._log_folder + "/error_" + str(self.current_step + 1) + ".pcd", compression='binary')
+
+        self.last_save_interval += 1
 
         if self._ros_flag:
             import rospy
