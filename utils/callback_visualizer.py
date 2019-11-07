@@ -4,6 +4,7 @@ import numpy as np
 from pypcd import pypcd
 import time
 from mpi4py import MPI
+import h5py
 
 import os
 from functools import reduce
@@ -33,42 +34,56 @@ class CallbackVisualizer(object):
             self.q_value_pcl_pub = rospy.Publisher('ctm/q_value_pcl', PointCloud2, queue_size=10)
             self.error_pcl_pub = rospy.Publisher('ctm/error_pcl', PointCloud2, queue_size=10)
 
-        self.ag_points = np.empty([2000000 * 19, 3], dtype=float)
-        self.errors = np.empty(2000000 * 19, dtype=float)
-        self.q_values = np.empty(2000000 * 19, dtype=float)
+        self.ag_points = np.empty([600000 * 19, 3], dtype=float)
+        self.errors = np.empty(600000 * 19, dtype=float)
+        self.q_values = np.empty(600000 * 19, dtype=float)
 
         self.q_value_pcl = None
         self.error_pcl = None
 
         self.current_step = 0
-        self.save_pcd_model_intervals = [0, 5e5, 1.0e6, 1.5e6, 1999998, 2e6]
-        self.last_save_interval = 0
+        self.local_step = 0
+        self.save_pcd_model_intervals = [5e5, 1.0e6, 1.5e6, 1999995, 2e6]
 
     def callback(self, _locals, _globals):
         self._locals = _locals
         self._globals = _globals
-        self.current_step = _locals['total_steps'] - 1
         observation = _locals['self'].env.convert_obs_to_dict(_locals['new_obs'])
         ag = observation['achieved_goal'] * MM_TO_M
-        self.ag_points[self.current_step, :] = ag
+        self.ag_points[self.local_step, :] = ag
         error = _locals['info']['error']
-        self.errors[self.current_step] = error
+        self.errors[self.local_step] = error
         q_val = _locals['q_value']
-        self.q_values[self.current_step] = q_val
+        self.q_values[self.local_step] = q_val
         rank = MPI.COMM_WORLD.Get_rank()
 
-        if _locals['total_steps'] in self.save_pcd_model_intervals and rank == 0:
-            self.save_point_clouds()
+        self.current_step = _locals['total_steps'] - 1
+        self.local_step += 1
+
+        if self.current_step in self.save_pcd_model_intervals and rank == 0:
+            self.save_arrays()
+            # self.save_point_clouds()
             if self._ros_flag:
                 self.publish_point_clouds()
             # Save model periodically
             _locals['self'].save(self._log_folder + '/' + 'temp_saved_model.pkl')
+            # Clear array
+            self.ag_points = np.empty([600000 * 19, 3], dtype=float)
+            self.errors = np.empty(600000 * 19, dtype=float)
+            self.q_values = np.empty(600000 * 19, dtype=float)
+            self.local_step = 0
+
+    def save_arrays(self):
+        hf = h5py.File(self._log_folder + '/' + 'data_' + str(self.current_step) + '.h5', 'w')
+        hf.create_dataset('achieved_goals', data=self.ag_points[0:self.local_step, :])
+        hf.create_dataset('errors', data=self.errors[0:self.local_step])
+        hf.create_dataset('q_values', data=self.q_values[0:self.local_step])
+        hf.close()
 
     def save_point_clouds(self):
-        last_save = self.save_pcd_model_intervals[self.last_save_interval]
-        ag_points = self.ag_points[last_save:self.current_step, :]
-        error_values = self.errors[last_save:self.current_step]
-        q_val_values = self.q_values[last_save:self.current_step]
+        ag_points = self.ag_points[0:self.local_step, :]
+        error_values = self.errors[0:self.local_step]
+        q_val_values = self.q_values[0:self.local_step]
 
         q_pcl_points = np.ndarray((ag_points.shape[0], 4), dtype=np.float32)
         error_pcl_points = np.ndarray((ag_points.shape[0], 4), dtype=np.float32)
@@ -89,8 +104,6 @@ class CallbackVisualizer(object):
         q_value_cloud.save_pcd(self._log_folder + "/q_value_" + str(self.current_step + 1) + ".pcd", compression='binary')
         error_cloud = pypcd.make_xyz_rgb_point_cloud(error_pcl_points)
         error_cloud.save_pcd(self._log_folder + "/error_" + str(self.current_step + 1) + ".pcd", compression='binary')
-
-        self.last_save_interval += 1
 
         if self._ros_flag:
             import rospy
