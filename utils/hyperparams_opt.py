@@ -68,7 +68,7 @@ def hyperparam_optimization(algo, model_fn, env_fn, n_trials=10, n_timesteps=500
 
     study = optuna.create_study(sampler=sampler, pruner=pruner)
     # algo_sampler = HYPERPARAMS_SAMPLER[algo]
-    algo_sampler = sample_two_tube_param_noise_params
+    algo_sampler = sample_two_tube_ou_params
 
     def objective(trial):
 
@@ -436,14 +436,23 @@ def sample_one_tube_noise_params(trial):
 
 def sample_two_tube_param_noise_params(trial):
     hyperparams = {}
-    hyperparams['action_noise'] = NormalActionNoise(mean=np.zeros(trial.n_actions),
-                                                    sigma=np.array(0 * np.ones(trial.n_actions)))
+    hyperparams['action_noise'] = None
     # change the noise types
     # Set limits of search to action limits
     noise_std = trial.suggest_uniform('noise_std', 0, 1)
     print('Using parameter noise with value: ', noise_std)
     hyperparams['param_noise'] = AdaptiveParamNoiseSpec(initial_stddev=noise_std,
                                                         desired_action_stddev=noise_std)
+    return hyperparams
+
+
+def sample_two_tube_ou_params(trial):
+    hyperparams = {}
+    noise_std = trial.suggest_uniform('noise_std', 0, 0.001)
+    hyperparams['action_noise'] = OrnsteinUhlenbeckActionNoise(mean=np.array([0.0, 0.001, 0.0, 0.001]),
+                                                               sigma=np.array([0.025, noise_std, 0.025, noise_std]),
+                                                               theta=0.03, dt=1,
+                                                               initial_noise=np.array(0 * np.zeros(trial.n_actions)))
     return hyperparams
 
 

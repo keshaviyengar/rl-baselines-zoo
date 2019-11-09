@@ -214,8 +214,6 @@ if __name__ == '__main__':
         elif args.experiment_id == 15:
             print("four tube OU noise")
             hyperparams['noise_type'] = 'ornstein-uhlenbeck'
-        else:
-            AssertionError('incorrect experiment id.')
 
         algo_ = args.algo
         # HER is only a wrapper around an algo
@@ -390,8 +388,6 @@ if __name__ == '__main__':
                                                                                               -0.05, 0,
                                                                                               -0.025])
 
-                else:
-                    AssertionError("Incorrect experiment id for OU noise.")
 
             #     hyperparams['action_noise'] = OrnsteinUhlenbeckActionNoise(mean=np.zeros(n_actions),
             #                                                                sigma=noise_std * np.ones(n_actions))
