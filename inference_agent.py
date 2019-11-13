@@ -31,7 +31,7 @@ class Ctm2Inference(object):
         seed = np.random.randint(0, 10)
 
         algo = 'her'
-        model_path = "/home/keshav/ctm2-stable-baselines/saved-runs/2-gaussian-varied-0.02-0.0009-0.03-0.0004/" + env_id + ".pkl"
+        model_path = "/home/keshav/ctm2-stable-baselines/saved-runs/results/exp_2/" + env_id + ".pkl"
         assert os.path.isfile(model_path), "No model found for {} on {}, path: {}".format(algo, env_id, model_path)
         set_global_seeds(seed)
 

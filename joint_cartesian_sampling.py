@@ -11,9 +11,9 @@ import numpy as np
 plt.interactive(True)
 
 if __name__ == '__main__':
-    env = gym.make("Distal-4-Tube-Reach-v0", ros_flag=False)
+    env = gym.make("Distal-2-Tube-Reach-v0", ros_flag=False)
 
-    num_tubes = 4
+    num_tubes = 2
     num_samples = 10000
     alpha_joint_data = np.empty([num_samples, 2 * num_tubes])
     beta_joint_data = np.empty([num_samples, num_tubes])
@@ -61,7 +61,10 @@ if __name__ == '__main__':
         a4 = rot_joint_df.plot.hist(bins=30, alpha=0.5)
 
         cart_df = pd.DataFrame(cartesian_data, columns=['x', 'y', 'z'])
+        plt.figure()
         a5 = cart_df.plot.hist(bins=30, alpha=0.5)
+        a5.set_xlabel('Cartesian point (meters)')
+        plt.savefig('2-tube-x-y-z.png', dpi=300)
 
     if num_tubes == 3:
         # beta_joint_df = pd.DataFrame(beta_joint_data, columns=['beta_0', 'beta_1', 'beta_3'])
@@ -79,7 +82,10 @@ if __name__ == '__main__':
         a4 = rot_joint_df.plot.hist(bins=30, alpha=0.5)
 
         cart_df = pd.DataFrame(cartesian_data, columns=['x', 'y', 'z'])
+        plt.figure()
         a5 = cart_df.plot.hist(bins=30, alpha=0.5)
+        a5.set_xlabel('Cartesian point (meters)')
+        plt.savefig('3-tube-x-y-z.png', dpi=300)
 
     if num_tubes == 4:
         # beta_joint_df = pd.DataFrame(beta_joint_data, columns=[r'$\beta_0$', r'$\beta_1$', r'$\beta_2$', r'$\beta_3$'])
@@ -90,13 +96,16 @@ if __name__ == '__main__':
         #                                        'tube_3_0', 'tube_3_1'])
         # a2 = alpha_joint_df.plot.hist(bins=30, alpha=0.5)
 
-        ext_joint_df = pd.DataFrame(ext_joint_data, columns=[r'$L_0 + \beta_0$', r'$L_1 + \beta_1$', r'$L_2 + \beta_2$',
-                                                             r'$L_3 + \beta_3$'])
-        a3 = ext_joint_df.plot.hist(bins=30, alpha=0.5)
+        # ext_joint_df = pd.DataFrame(ext_joint_data, columns=[r'$L_0 + \beta_0$', r'$L_1 + \beta_1$', r'$L_2 + \beta_2$',
+        #                                                      r'$L_3 + \beta_3$'])
+        # a3 = ext_joint_df.plot.hist(bins=30, alpha=0.5)
 
-        rot_joint_df = pd.DataFrame(rot_joint_data,
-                                    columns=[r'$\alpha_0$', r'$\alpha_1$', r'$\alpha_2$', r'$\alpha_3$'])
-        a4 = rot_joint_df.plot.hist(bins=30, alpha=0.5)
+        # rot_joint_df = pd.DataFrame(rot_joint_data,
+        #                             columns=[r'$\alpha_0$', r'$\alpha_1$', r'$\alpha_2$', r'$\alpha_3$'])
+        # a4 = rot_joint_df.plot.hist(bins=30, alpha=0.5)
 
         cart_df = pd.DataFrame(cartesian_data, columns=['x', 'y', 'z'])
+        plt.figure()
         a5 = cart_df.plot.hist(bins=30, alpha=0.5)
+        a5.set_xlabel('Cartesian point (meters)')
+        plt.savefig('4-tube-x-y-z.png', dpi=300)
