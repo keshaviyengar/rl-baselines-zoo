@@ -360,36 +360,33 @@ if __name__ == '__main__':
                                                                     sigma=noise_std * np.ones(n_actions))
             elif 'ornstein-uhlenbeck' in noise_type:
                 if args.experiment_id == 5:
-                    print('OU noise experiment 5')
-                    hyperparams['action_noise'] = OrnsteinUhlenbeckActionNoise(mean=np.zeros(n_actions),
-                                                                               sigma=[0.025, 0.00065, 0.025,
-                                                                                      0.00065] * np.ones(
+                    hyperparams['action_noise'] = OrnsteinUhlenbeckActionNoise(initial_noise=np.zeros(n_actions),
+                                                                               sigma=[0.025, 0.00021, 0.025,
+                                                                                      0.00021] * np.ones(
                                                                                    n_actions),
                                                                                theta=0.03, dt=1,
-                                                                               initial_noise=[0, -0.10, 0, -0.05])
+                                                                               mean=[0, 0.15, 0, 0.10])
                 elif args.experiment_id == 10:
-                    print('OU noise experiment 10')
-                    hyperparams['action_noise'] = OrnsteinUhlenbeckActionNoise(mean=np.zeros(n_actions),
-                                                                               sigma=[0.025, 0.00065, 0.025, 0.00065,
+                    hyperparams['action_noise'] = OrnsteinUhlenbeckActionNoise(initial_noise=np.zeros(n_actions),
+                                                                               sigma=[0.025, 0.00021, 0.025, 0.00021,
                                                                                       0.025,
-                                                                                      0.00065] * np.ones(
+                                                                                      0.00021] * np.ones(
                                                                                    n_actions),
                                                                                theta=0.03, dt=1,
-                                                                               initial_noise=[0, -0.12, 0, -0.07, 0,
-                                                                                              -0.04])
+                                                                               mean=[0, 0.15, 0, 0.10, 0,
+                                                                                              0.10])
 
                 elif args.experiment_id == 15:
-                    print('OU noise experiment 15')
-                    hyperparams['action_noise'] = OrnsteinUhlenbeckActionNoise(mean=np.zeros(n_actions),
-                                                                               sigma=[0.025, 0.00065, 0.025, 0.00065,
+                    hyperparams['action_noise'] = OrnsteinUhlenbeckActionNoise(initial_noise=np.zeros(n_actions),
+                                                                               sigma=[0.025, 0.00021, 0.025, 0.00021,
                                                                                       0.025,
-                                                                                      0.00065, 0.025,
-                                                                                      0.00065] * np.ones(
+                                                                                      0.00021, 0.025,
+                                                                                      0.00021] * np.ones(
                                                                                    n_actions),
                                                                                theta=0.03, dt=1,
-                                                                               initial_noise=[0., - 0.15, 0, -0.10, 0,
-                                                                                              -0.05, 0,
-                                                                                              -0.025])
+                                                                               mean=[0., 0.15, 0, 0.10, 0,
+                                                                                              0.07, 0,
+                                                                                              0.02])
 
 
             #     hyperparams['action_noise'] = OrnsteinUhlenbeckActionNoise(mean=np.zeros(n_actions),
