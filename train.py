@@ -361,32 +361,32 @@ if __name__ == '__main__':
             elif 'ornstein-uhlenbeck' in noise_type:
                 if args.experiment_id == 5:
                     hyperparams['action_noise'] = OrnsteinUhlenbeckActionNoise(initial_noise=np.zeros(n_actions),
-                                                                               sigma=[0.025, 0.00021, 0.025,
-                                                                                      0.00021] * np.ones(
+                                                                               sigma=np.array([0.025, 0.00021, 0.025,
+                                                                                      0.00021]) * np.ones(
                                                                                    n_actions),
                                                                                theta=0.03, dt=1,
-                                                                               mean=[0, 0.15, 0, 0.10])
+                                                                               mean=np.array([0, 0.15, 0, 0.10]))
                 elif args.experiment_id == 10:
                     hyperparams['action_noise'] = OrnsteinUhlenbeckActionNoise(initial_noise=np.zeros(n_actions),
-                                                                               sigma=[0.025, 0.00021, 0.025, 0.00021,
+                                                                               sigma=np.array([0.025, 0.00021, 0.025, 0.00021,
                                                                                       0.025,
-                                                                                      0.00021] * np.ones(
+                                                                                      0.00021]) * np.ones(
                                                                                    n_actions),
                                                                                theta=0.03, dt=1,
-                                                                               mean=[0, 0.15, 0, 0.10, 0,
-                                                                                              0.10])
+                                                                               mean=np.array([0, 0.15, 0, 0.10, 0,
+                                                                                              0.07]))
 
                 elif args.experiment_id == 15:
                     hyperparams['action_noise'] = OrnsteinUhlenbeckActionNoise(initial_noise=np.zeros(n_actions),
-                                                                               sigma=[0.025, 0.00021, 0.025, 0.00021,
+                                                                               sigma=np.array([0.025, 0.00021, 0.025, 0.00021,
                                                                                       0.025,
                                                                                       0.00021, 0.025,
-                                                                                      0.00021] * np.ones(
+                                                                                      0.00021]) * np.ones(
                                                                                    n_actions),
                                                                                theta=0.03, dt=1,
-                                                                               mean=[0., 0.15, 0, 0.10, 0,
+                                                                               mean=np.array([0., 0.15, 0, 0.10, 0,
                                                                                               0.07, 0,
-                                                                                              0.02])
+                                                                                              0.02]))
 
 
             #     hyperparams['action_noise'] = OrnsteinUhlenbeckActionNoise(mean=np.zeros(n_actions),
