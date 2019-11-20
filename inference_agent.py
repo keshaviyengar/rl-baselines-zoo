@@ -15,6 +15,7 @@ from utils import create_test_env, get_saved_hyperparams
 import rospy
 from trajectory_msgs.msg import JointTrajectory, JointTrajectoryPoint
 from geometry_msgs.msg import Pose
+from std_msgs.msg import Bool
 import rosbag
 
 import signal
@@ -25,46 +26,85 @@ import signal
 
 
 class Ctm2Inference(object):
-    def __init__(self):
-        env_id = "Distal-2-Tube-Reach-v0"
-        #env_id = "Distal-1-Tube-Reach-v0"
+    def __init__(self, experiment_id, episode_timesteps, goal_tolerance):
+        env_id = None
+        self.exp_id = experiment_id
+        if experiment_id in [1,2,3,4,5]:
+            env_id = "Distal-2-Tube-Reach-v0"
+        if experiment_id in [6,7,8,9, 10]:
+            env_id = "Distal-3-Tube-Reach-v0"
+        if experiment_id in [11,12,13,14,15]:
+            env_id = "Distal-4-Tube-Reach-v0"
+
+        self.save = False
+
+        self.episode_timesteps = episode_timesteps
+
+        self.env = HERGoalEnvWrapper(gym.make(env_id, goal_tolerance=goal_tolerance, ros_flag=True, render_type='human'))
         seed = np.random.randint(0, 10)
 
-        algo = 'her'
-        model_path = "/home/keshav/ctm2-stable-baselines/saved-runs/results/exp_2/" + env_id + ".pkl"
-        assert os.path.isfile(model_path), "No model found for {} on {}, path: {}".format(algo, env_id, model_path)
-        set_global_seeds(seed)
-
-        signal.signal(signal.SIGINT, handler=self._ctrl_c_handler)
-
-        '''
-        hyperparams, stats_path = get_saved_hyperparams(stats_path, norm_reward=False, test_mode=True)
-        env = create_test_env(env_id, n_envs=1, is_atari=False, stats_path=stats_path, seed=seed, log_dir=log_dir,
-                               should_render=True, hyperparams=hyperparams)
-        '''
-        self.env = HERGoalEnvWrapper(gym.make(env_id, ros_flag=True, render_type='human'))
+        model_path = "/home/keshav/ctm2-stable-baselines/saved-runs/results/" + "exp_" + str(experiment_id) + "/" + env_id + ".pkl"
         self.model = HER.load(model_path, env=self.env)
+
+        set_global_seeds(seed)
 
         self.desired_goal_sub = rospy.Subscriber("desired_goal", Pose, self.desired_goal_callback)
         self.desired_goal = np.array([0, 0, 0])
 
+        self.trajectory_finish_sub = rospy.Subscriber("trajectory_finish", Bool, self.trajectory_finish_callback)
+
         # Create a pandas dataframe for storing data
         self.df = pd.DataFrame(
-            columns=['total steps', 'rewards', 'errors', 'success', 'time_taken', 'q goal_1', 'q goal_2', 'q_goal_3', 'q_goal_4'])
+            columns=['achieved_goal_x', 'achieved_goal_y', 'achieved_goal_z',
+                     'desired_goal_x', 'desired_goal_y', 'desired_goal_z', 'errors', 'time_taken'])
 
-        # Initialize stats variables
-        self.episode_rewards = []
-        self.episode_lengths = []
+        # Initialize stats variables for saving
+        self.achieved_goals_x = []
+        self.achieved_goals_y = []
+        self.achieved_goals_z = []
+        self.desired_goals_x = []
+        self.desired_goals_y = []
+        self.desired_goals_z = []
         self.errors = []
-        self.successes = []
-        self.q_goals = []
-        self.time_taken = []
+        self.times_taken = []
+
+        # Initialize current variables for stats
+        self.achieved_goal_x = 0
+        self.achieved_goal_y = 0
+        self.achieved_goal_z = 0
+        self.desired_goal_x = 0
+        self.desired_goal_y = 0
+        self.desired_goal_z = 0
+        self.error = 0
+        self.time_taken = 0
+        self.start_time = rospy.Time.now()
 
     def desired_goal_callback(self, msg):
+        # Append the stats variables at the callback
+        self.achieved_goals_x = np.append(self.achieved_goals_x, self.achieved_goal_x)
+        self.achieved_goals_y = np.append(self.achieved_goals_y, self.achieved_goal_y)
+        self.achieved_goals_z = np.append(self.achieved_goals_z, self.achieved_goal_z)
+        self.desired_goals_x = np.append(self.desired_goals_x, self.desired_goal_x)
+        self.desired_goals_y = np.append(self.desired_goals_y, self.desired_goal_y)
+        self.desired_goals_z = np.append(self.desired_goals_z, self.desired_goal_z)
+        self.errors = np.append(self.errors, self.error)
+        self.times_taken = np.append(self.times_taken, self.time_taken)
         self.desired_goal = np.array([msg.position.x / 1000, msg.position.y / 1000, msg.position.z / 1000])
 
-    def publish_pcl(self):
-        pass
+    def trajectory_finish_callback(self, msg):
+        if msg.data and not self.save:
+            self.save = True
+            # End of trajectory, save data frame
+            self.df['achieved_goal_x'] = self.achieved_goals_x
+            self.df['achieved_goal_y'] = self.achieved_goals_y
+            self.df['achieved_goal_z'] = self.achieved_goals_z
+            self.df['desired_goal_x'] = self.desired_goals_x
+            self.df['desired_goal_y'] = self.desired_goals_y
+            self.df['desired_goal_z'] = self.desired_goals_z
+            self.df['errors'] = self.errors
+            self.df["time_taken"] = self.time_taken
+            # self.df.to_csv('~/ctm2-stable-baselines/saved-runs/results/' + 'exp_' + str(self.exp_id) + '/square_traj.csv')
+            self.df.to_csv('~/ctm2-stable-baselines/saved-runs/results/exp-14-0-3-square.csv')
 
     def infer_to_goal(self):
         episode_reward = 0.0
@@ -73,8 +113,7 @@ class Ctm2Inference(object):
         # Set the observation
         obs = self.env.reset(goal=self.desired_goal)
 
-        start_time = rospy.Time.now()
-        for t in range(200):
+        for t in range(self.episode_timesteps):
             action, _ = self.model.predict(obs, deterministic=True)
 
             # Ensure action space is of type Box
@@ -86,27 +125,22 @@ class Ctm2Inference(object):
             episode_reward += reward
             ep_len += 1
 
+            self.achieved_goal_x = self.env.convert_obs_to_dict(obs)['achieved_goal'][0]
+            self.achieved_goal_y = self.env.convert_obs_to_dict(obs)['achieved_goal'][1]
+            self.achieved_goal_z = self.env.convert_obs_to_dict(obs)['achieved_goal'][2]
+            self.desired_goal_x = self.env.convert_obs_to_dict(obs)['desired_goal'][0]
+            self.desired_goal_y = self.env.convert_obs_to_dict(obs)['desired_goal'][1]
+            self.desired_goal_z = self.env.convert_obs_to_dict(obs)['desired_goal'][2]
+            self.error = infos['error']
+            self.time_taken = (rospy.Time.now() - self.start_time).to_sec()
             if done or infos.get('is_success', False):
-                self.successes.append(infos.get('is_success', False))
-                self.errors.append(infos.get('error', np.inf))
-                self.episode_lengths.append(ep_len)
-                self.episode_rewards.append(episode_reward)
-                self.q_goals.append(infos.get('q_goal', False))
-                self.time_taken.append((rospy.Time.now() - start_time).to_sec())
                 break
-
-    def _ctrl_c_handler(self,  signal, frame):
-        print("Ctrl c pressed!")
-        self.df['total steps'] = self.episode_lengths
-        self.df['rewards'] = self.episode_rewards
-        self.df['errors'] = self.errors
-        self.df['success'] = self.successes
-        self.df["time_taken"] = self.time_taken
-        self.df.to_csv("2-tube.csv")
 
 
 if __name__ == '__main__':
-    inferencer = Ctm2Inference()
+    experiment_id = 14
+    episode_timesteps = 150
+    inferencer = Ctm2Inference(experiment_id=experiment_id, episode_timesteps=episode_timesteps, goal_tolerance=0.0003)
     while True:
         inferencer.infer_to_goal()
         if rospy.is_shutdown():

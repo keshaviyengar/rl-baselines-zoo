@@ -6,7 +6,7 @@ cmd_line="$@"
 echo "Executing in the docker (cpu image):"
 echo $cmd_line
 
-
 docker run -it --rm --network host --ipc=host \
- --mount src=$(pwd),target=/root/code/stable-baselines,type=bind araffin/rl-baselines-zoo-cpu\
-  bash -c "cd /root/code/stable-baselines/ && $cmd_line"
+ -v /tmp/rosbags:/rosbags \
+ -v $(pwd)/rl-baselines-zoo:/root/code/rl-baselines-zoo \
+ keshaviyengar/ctm2-stable-baselines:latest bash -c "cd /root/code/rl-baselines-zoo/ && $cmd_line"
