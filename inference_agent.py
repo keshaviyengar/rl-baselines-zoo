@@ -31,7 +31,7 @@ class Ctm2Inference(object):
         self.exp_id = experiment_id
         if experiment_id in [1,2,3,4,5]:
             env_id = "Distal-2-Tube-Reach-v0"
-        if experiment_id in [6,7,8,9, 10]:
+        if experiment_id in [6,7,8,9,10]:
             env_id = "Distal-3-Tube-Reach-v0"
         if experiment_id in [11,12,13,14,15]:
             env_id = "Distal-4-Tube-Reach-v0"
@@ -43,7 +43,7 @@ class Ctm2Inference(object):
         self.env = HERGoalEnvWrapper(gym.make(env_id, goal_tolerance=goal_tolerance, ros_flag=True, render_type='human'))
         seed = np.random.randint(0, 10)
 
-        model_path = "/home/keshav/ctm2-stable-baselines/saved-runs/results/" + "exp_" + str(experiment_id) + "/" + env_id + ".pkl"
+        model_path = "/home/keshav/ctm2-stable-baselines/saved_results/" + "exp_" + str(experiment_id) + "/" + env_id + ".pkl"
         self.model = HER.load(model_path, env=self.env)
 
         set_global_seeds(seed)
@@ -104,7 +104,7 @@ class Ctm2Inference(object):
             self.df['errors'] = self.errors
             self.df["time_taken"] = self.time_taken
             # self.df.to_csv('~/ctm2-stable-baselines/saved-runs/results/' + 'exp_' + str(self.exp_id) + '/square_traj.csv')
-            self.df.to_csv('~/ctm2-stable-baselines/saved-runs/results/exp-14-0-3-square.csv')
+            self.df.to_csv('~/ctm2-stable-baselines/saved_results/exp-14-0-3-square.csv')
 
     def infer_to_goal(self):
         episode_reward = 0.0
@@ -138,7 +138,7 @@ class Ctm2Inference(object):
 
 
 if __name__ == '__main__':
-    experiment_id = 14
+    experiment_id = 4
     episode_timesteps = 150
     inferencer = Ctm2Inference(experiment_id=experiment_id, episode_timesteps=episode_timesteps, goal_tolerance=0.0003)
     while True:

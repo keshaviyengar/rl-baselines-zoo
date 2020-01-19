@@ -36,6 +36,7 @@ from utils.noise import LinearNormalActionNoise
 from stable_baselines.her.utils import HERGoalEnvWrapper
 
 import ctm2_envs
+import ctr_envs
 from utils.callback_visualizer import CallbackVisualizer
 import pandas as pd
 
@@ -87,7 +88,7 @@ if __name__ == '__main__':
     parser.add_argument('--render-type', help='Choose a rendering type during evaluation: empty, record or human',
                         default='', type=str)
     parser.add_argument('--experiment-id', help='Choose the experiment number. Refer to the excel sheet.',
-                        default='', type=int)
+                        default=0, type=int)
     args = parser.parse_args()
 
     # Set log directory
@@ -214,6 +215,8 @@ if __name__ == '__main__':
         elif args.experiment_id == 15:
             print("four tube OU noise")
             hyperparams['noise_type'] = 'ornstein-uhlenbeck'
+        else:
+            print("Non experiment being used.")
 
         algo_ = args.algo
         # HER is only a wrapper around an algo

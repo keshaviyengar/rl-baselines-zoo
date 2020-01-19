@@ -222,11 +222,11 @@ hold on
 plot(exp_15.desired_goal_x * 1000, exp_15.desired_goal_y * 1000, 'g')
 
 %% Load best tolerance and strategy for each tube and plot
-two_tube = readtable('~/ctm2-stable-baselines/saved-runs/results/exp-4-0-6-square.csv');
+two_tube = readtable('~/ctm2-stable-baselines/saved_results/exp-4-0-6-square.csv');
 two_tube(1:9,:) = [];
-three_tube = readtable('~/ctm2-stable-baselines/saved-runs/results/exp-10-0-4-square_test.csv');
+three_tube = readtable('~/ctm2-stable-baselines/saved_results/exp-10-0-4-square_test.csv');
 three_tube(1:10,:) = [];
-four_tube = readtable('~/ctm2-stable-baselines/saved-runs/results/exp-14-0-3-square.csv');
+four_tube = readtable('~/ctm2-stable-baselines/saved_results/exp-14-0-3-square.csv');
 four_tube(1:12,:) = [];
 %% 2-tube plot
 plot(two_tube.achieved_goal_x * 1000, two_tube.achieved_goal_y * 1000, 'r', 'DisplayName','achieved')
@@ -280,7 +280,7 @@ legend
 
 % plot errors
 plot(four_tube.errors * 1000, 'r')
-xlabel('time (seconds)')
+xlabel('steps')
 ylabel('errors (mm)')
 
 %% Point cloud data

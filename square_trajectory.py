@@ -26,9 +26,9 @@ class SquareTrajectory(object):
         self._done_trajectory = False
         # For now set initial current pose as 0
         self._desired_pose = Pose()
-        self._desired_pose.position.x = 10  # 10 for 3 and 4 tube, 30 for 2 tube
-        self._desired_pose.position.y = 10  # 0 for 3 and 4 tube, 30 for 2 tube
-        self._desired_pose.position.z = 120  # 120 for 3 and 4 tube, 100 for 2 tube
+        self._desired_pose.position.x = 30  # 10 for 3 and 4 tube, 30 for 2 tube
+        self._desired_pose.position.y = 30  # 0 for 3 and 4 tube, 30 for 2 tube
+        self._desired_pose.position.z = 100  # 120 for 3 and 4 tube, 100 for 2 tube
         self._desired_pose.orientation.x = 0
         self._desired_pose.orientation.y = 0
         self._desired_pose.orientation.z = 0
