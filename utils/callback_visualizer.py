@@ -45,6 +45,11 @@ class CallbackVisualizer(object):
         self.local_step = 0
         self.save_pcd_model_intervals = [5e5, 1.0e6, 1.5e6, 1999995, 2e6]
 
+        # Variable reward goal tolerance
+        self.final_goal_tol = 0.001
+        self.initial_goal_tol = 0.020
+        self.r = 1 - np.power((self.final_goal_tol / self.initial_goal_tol), 1 / 2e6)
+
     def callback(self, _locals, _globals):
         self._locals = _locals
         self._globals = _globals
@@ -60,6 +65,7 @@ class CallbackVisualizer(object):
         self.current_step = _locals['total_steps'] - 1
         self.local_step += 1
 
+        self._update_goal_tolerance()
         if self.current_step in self.save_pcd_model_intervals and rank == 0:
             self.save_arrays()
             # self.save_point_clouds()
@@ -137,3 +143,7 @@ class CallbackVisualizer(object):
         rgb = np.array([r, g, b], dtype=np.uint8)
         #rgb = struct.unpack('I', struct.pack('BBBB', b, g, r, 255))[0]
         return np.reshape(rgb, [1, 3])
+
+    def _update_goal_tolerance(self):
+        goal_tol_new = self.initial_goal_tol * np.power(1 - self.r, self.current_step) + self.final_goal_tol
+        self._locals['self'].env.env.update_goal_tolerance(goal_tol_new)
