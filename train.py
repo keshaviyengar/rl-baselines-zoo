@@ -476,6 +476,8 @@ if __name__ == '__main__':
         if not args.load_weights_from_experiment == '':
             old_model = ALGOS[args.algo].load(args.load_weights_from_experiment, env=gym.make("Distal-2-Tube-Reach-v0"))
             old_model_params = old_model.model.get_parameters()
+            old_model_params = dict(
+                (key, value) for key, value in old_model_params.items() if ("model/" in key or "target/" in key))
             model.model.load_parameters(old_model_params, exact_match=False)
 
         model.learn(n_timesteps, **kwargs)
