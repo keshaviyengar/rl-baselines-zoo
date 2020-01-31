@@ -65,6 +65,9 @@ if __name__ == '__main__':
     parser.add_argument('-tb', '--tensorboard-log', help='Tensorboard log dir', default='', type=str)
     parser.add_argument('-i', '--trained-agent', help='Path to a pretrained agent to continue training',
                         default='', type=str)
+    parser.add_argument('--load-weights-from-experiment',
+                        help='Load the policy weights and shared weights from a saved experiment',
+                        default='', type=str)
     parser.add_argument('--algo', help='RL Algorithm', default='ppo2',
                         type=str, required=False, choices=list(ALGOS.keys()))
     parser.add_argument('-n', '--n-timesteps', help='Overwrite the number of timesteps', default=-1,
@@ -365,15 +368,16 @@ if __name__ == '__main__':
                 if args.experiment_id == 5:
                     hyperparams['action_noise'] = OrnsteinUhlenbeckActionNoise(initial_noise=np.zeros(n_actions),
                                                                                sigma=np.array([0.025, 0.00021, 0.025,
-                                                                                      0.00021]) * np.ones(
+                                                                                               0.00021]) * np.ones(
                                                                                    n_actions),
                                                                                theta=0.03, dt=1,
                                                                                mean=np.array([0, 0.15, 0, 0.10]))
                 elif args.experiment_id == 10:
                     hyperparams['action_noise'] = OrnsteinUhlenbeckActionNoise(initial_noise=np.zeros(n_actions),
-                                                                               sigma=np.array([0.025, 0.00021, 0.025, 0.00021,
-                                                                                      0.025,
-                                                                                      0.00021]) * np.ones(
+                                                                               sigma=np.array(
+                                                                                   [0.025, 0.00021, 0.025, 0.00021,
+                                                                                    0.025,
+                                                                                    0.00021]) * np.ones(
                                                                                    n_actions),
                                                                                theta=0.03, dt=1,
                                                                                mean=np.array([0, 0.15, 0, 0.10, 0,
@@ -381,10 +385,11 @@ if __name__ == '__main__':
 
                 elif args.experiment_id == 15:
                     hyperparams['action_noise'] = OrnsteinUhlenbeckActionNoise(initial_noise=np.zeros(n_actions),
-                                                                               sigma=np.array([0.025, 0.00021, 0.025, 0.00021,
-                                                                                      0.025,
-                                                                                      0.00021, 0.025,
-                                                                                      0.00021]) * np.ones(
+                                                                               sigma=np.array(
+                                                                                   [0.025, 0.00021, 0.025, 0.00021,
+                                                                                    0.025,
+                                                                                    0.00021, 0.025,
+                                                                                    0.00021]) * np.ones(
                                                                                    n_actions),
                                                                                theta=0.03, dt=1,
                                                                                mean=np.array([0., 0.15, 0, 0.10, 0,
@@ -466,6 +471,12 @@ if __name__ == '__main__':
             callback_visualizer = CallbackVisualizer(args.log_folder, ros_flag=False)
 
         kwargs['callback'] = callback_visualizer.callback
+
+        # Load an experiments .pkl network weights if needed
+        if not args.load_weights_from_experiment == '':
+            old_model = ALGOS[args.algo].load(args.load_weights_from_experiment, env=gym.make("Distal-2-Tube-Reach-v0"))
+            old_model_params = old_model.model.get_parameters()
+            model.model.load_parameters(old_model_params, exact_match=False)
 
         model.learn(n_timesteps, **kwargs)
 
