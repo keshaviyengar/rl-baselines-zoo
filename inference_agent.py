@@ -20,30 +20,34 @@ import rosbag
 
 import signal
 
+
 # ROS node for inferencing
 # Subscribes to a point (or other type of topic) to get desired goal
 # Uses stable-baselines model to attempt to reach goal from current position
 
 
 class Ctm2Inference(object):
-    def __init__(self, experiment_id, episode_timesteps, goal_tolerance):
+    def __init__(self, experiment_id, shape, episode_timesteps, goal_tolerance):
         env_id = None
+        self.shape = shape
         self.exp_id = experiment_id
-        if experiment_id in [1,2,3,4,5]:
+        if experiment_id in [1, 2, 3, 4, 5]:
             env_id = "Distal-2-Tube-Reach-v0"
-        if experiment_id in [6,7,8,9,10]:
+        if experiment_id in [6, 7, 8, 9, 10]:
             env_id = "Distal-3-Tube-Reach-v0"
-        if experiment_id in [11,12,13,14,15]:
+        if experiment_id in [11, 12, 13, 14, 15]:
             env_id = "Distal-4-Tube-Reach-v0"
 
         self.save = False
 
         self.episode_timesteps = episode_timesteps
 
-        self.env = HERGoalEnvWrapper(gym.make(env_id, goal_tolerance=goal_tolerance, ros_flag=True, render_type='human'))
+        self.env = HERGoalEnvWrapper(
+            gym.make(env_id, goal_tolerance=goal_tolerance, ros_flag=True, render_type='human'))
         seed = np.random.randint(0, 10)
 
-        model_path = "/home/keshav/ctm2-stable-baselines/saved_results/" + "exp_" + str(experiment_id) + "/" + env_id + ".pkl"
+        model_path = "/home/keshav/ctm2-stable-baselines/saved_results/" + "exp_" + str(
+            experiment_id) + "/" + env_id + ".pkl"
         self.model = HER.load(model_path, env=self.env)
 
         set_global_seeds(seed)
@@ -79,6 +83,8 @@ class Ctm2Inference(object):
         self.time_taken = 0
         self.start_time = rospy.Time.now()
 
+        self.start_trajectory = False
+
     def desired_goal_callback(self, msg):
         # Append the stats variables at the callback
         self.achieved_goals_x = np.append(self.achieved_goals_x, self.achieved_goal_x)
@@ -90,6 +96,9 @@ class Ctm2Inference(object):
         self.errors = np.append(self.errors, self.error)
         self.times_taken = np.append(self.times_taken, self.time_taken)
         self.desired_goal = np.array([msg.position.x / 1000, msg.position.y / 1000, msg.position.z / 1000])
+
+        if not self.start_trajectory:
+            self.start_trajectory = True
 
     def trajectory_finish_callback(self, msg):
         if msg.data and not self.save:
@@ -103,8 +112,8 @@ class Ctm2Inference(object):
             self.df['desired_goal_z'] = self.desired_goals_z
             self.df['errors'] = self.errors
             self.df["time_taken"] = self.time_taken
-            # self.df.to_csv('~/ctm2-stable-baselines/saved-runs/results/' + 'exp_' + str(self.exp_id) + '/square_traj.csv')
-            self.df.to_csv('~/ctm2-stable-baselines/saved_results/exp-14-0-3-square.csv')
+            self.df.to_csv('~/ctm2-stable-baselines/saved_results/traj_exp/' + 'exp_' + str(
+                self.exp_id) + '_' + self.shape + '_traj.csv')
 
     def infer_to_goal(self):
         episode_reward = 0.0
@@ -125,24 +134,48 @@ class Ctm2Inference(object):
             episode_reward += reward
             ep_len += 1
 
-            self.achieved_goal_x = self.env.convert_obs_to_dict(obs)['achieved_goal'][0]
-            self.achieved_goal_y = self.env.convert_obs_to_dict(obs)['achieved_goal'][1]
-            self.achieved_goal_z = self.env.convert_obs_to_dict(obs)['achieved_goal'][2]
-            self.desired_goal_x = self.env.convert_obs_to_dict(obs)['desired_goal'][0]
-            self.desired_goal_y = self.env.convert_obs_to_dict(obs)['desired_goal'][1]
-            self.desired_goal_z = self.env.convert_obs_to_dict(obs)['desired_goal'][2]
-            self.error = infos['error']
-            self.time_taken = (rospy.Time.now() - self.start_time).to_sec()
-            if done or infos.get('is_success', False):
-                break
+            if self.start_trajectory:
+                self.achieved_goal_x = self.env.convert_obs_to_dict(obs)['achieved_goal'][0]
+                self.achieved_goal_y = self.env.convert_obs_to_dict(obs)['achieved_goal'][1]
+                self.achieved_goal_z = self.env.convert_obs_to_dict(obs)['achieved_goal'][2]
+                self.desired_goal_x = self.env.convert_obs_to_dict(obs)['desired_goal'][0]
+                self.desired_goal_y = self.env.convert_obs_to_dict(obs)['desired_goal'][1]
+                self.desired_goal_z = self.env.convert_obs_to_dict(obs)['desired_goal'][2]
+                self.error = infos['error']
+                self.time_taken = (rospy.Time.now() - self.start_time).to_sec()
+                if done or infos.get('is_success', False):
+                    break
 
 
 if __name__ == '__main__':
-    experiment_id = 4
+    # experiments = [1, 2, 3, 4, 5]
+    experiments = [4]
     episode_timesteps = 150
-    inferencer = Ctm2Inference(experiment_id=experiment_id, episode_timesteps=episode_timesteps, goal_tolerance=0.0003)
-    while True:
-        inferencer.infer_to_goal()
-        if rospy.is_shutdown():
-            break
 
+    for experiment_id in experiments:
+        circle_inferencer = Ctm2Inference(experiment_id=experiment_id, shape='circle',
+                                          episode_timesteps=episode_timesteps,
+                                          goal_tolerance=0.001)
+
+        while not circle_inferencer.save:
+            circle_inferencer.infer_to_goal()
+            if rospy.is_shutdown() or circle_inferencer.save:
+                break
+
+        triangle_inferencer = Ctm2Inference(experiment_id=experiment_id, shape='triangle',
+                                            episode_timesteps=episode_timesteps,
+                                            goal_tolerance=0.001)
+
+        while not triangle_inferencer.save:
+            triangle_inferencer.infer_to_goal()
+            if rospy.is_shutdown() or triangle_inferencer.save:
+                break
+
+        square_inferencer = Ctm2Inference(experiment_id=experiment_id, shape='square',
+                                          episode_timesteps=episode_timesteps,
+                                          goal_tolerance=0.001)
+
+        while not square_inferencer.save:
+            square_inferencer.infer_to_goal()
+            if rospy.is_shutdown() or square_inferencer.save:
+                break
