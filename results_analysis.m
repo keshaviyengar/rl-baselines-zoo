@@ -175,9 +175,9 @@ plot(exp_2.achieved_goal_x * 1000, exp_2.achieved_goal_y * 1000, 'r')
 hold on
 plot(exp_2.desired_goal_x * 1000, exp_2.desired_goal_y * 1000, 'g')
 
-plot(exp_4.achieved_goal_x * 1000, exp_4.achieved_goal_y * 1000, 'r')
+plot(exp_4.achieved_goal_x(31:end) * 1000, exp_4.achieved_goal_y(31:end) * 1000, 'r')
 hold on
-plot(exp_4.desired_goal_x * 1000, exp_4.desired_goal_y * 1000, 'g')
+plot(exp_4.desired_goal_x(31:end) * 1000, exp_4.desired_goal_y(31:end) * 1000, 'g')
 
 plot(exp_5.achieved_goal_x * 1000, exp_5.achieved_goal_y * 1000, 'r')
 hold on
