@@ -172,33 +172,52 @@ class SquareTrajectory2(object):
 
 if __name__ == '__main__':
     rospy.init_node("trajectory_generator")
-    x_offset = 0
-    y_offset = 0
-    z_height = 90
-    radius = 10
-    theta_step = 0.1
-    print("Circle trajectory")
-    circle_trajectory = CircleTrajectory(x_offset, y_offset, z_height, radius, theta_step)
-    while not circle_trajectory.traj_finish:
-        if circle_trajectory.traj_finish:
-            break
 
-    point_a = [0, -10 + 30]
-    point_b = [10, 10 + 30]
-    point_c = [-10, 5 + 30]
-    z_height = 90
-    print("Triangle trajectory")
-    triangle_trajectory = TriangleTrajectory(point_a, point_b, point_c, z_height)
-    while not triangle_trajectory.traj_finish:
-        pass
+    num_experiments = 15
+    for exp in range(1, 16):
+        x_offset = 0
+        y_offset = 0
+        if exp in [1, 2, 3, 4, 5]:
+            z_height = 100
+        elif exp in [6, 7, 8, 9, 10]:
+            z_height = 115
+        else:
+            z_height = 115
 
-    point_a = [-10, -10]
-    point_b = [10, -10]
-    point_c = [10, 10]
-    point_d = [-10, 10]
-    z_height = 90
-    print("Square trajectory")
-    square_trajectory = SquareTrajectory2(point_a, point_b, point_c, point_d, z_height)
-    while not square_trajectory.traj_finish:
-        pass
+        radius = 10
+        theta_step = 0.1
+        print("Circle trajectory")
+        circle_trajectory = CircleTrajectory(x_offset, y_offset, z_height, radius, theta_step)
+        while not circle_trajectory.traj_finish:
+            if circle_trajectory.traj_finish:
+                break
+
+        point_a = [0, -10 + 30]
+        point_b = [10, 10 + 30]
+        point_c = [-10, 5 + 30]
+        if exp in [1, 2, 3, 4, 5]:
+            z_height = 100
+        elif exp in [6, 7, 8, 9, 10]:
+            z_height = 115
+        else:
+            z_height = 115
+        print("Triangle trajectory")
+        triangle_trajectory = TriangleTrajectory(point_a, point_b, point_c, z_height)
+        while not triangle_trajectory.traj_finish:
+            pass
+
+        point_a = [-10, -10]
+        point_b = [10, -10]
+        point_c = [10, 10]
+        point_d = [-10, 10]
+        if exp in [1, 2, 3, 4, 5]:
+            z_height = 100
+        elif exp in [6, 7, 8, 9, 10]:
+            z_height = 115
+        else:
+            z_height = 115
+        print("Square trajectory")
+        square_trajectory = SquareTrajectory2(point_a, point_b, point_c, point_d, z_height)
+        while not square_trajectory.traj_finish:
+            pass
 

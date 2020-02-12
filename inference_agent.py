@@ -112,7 +112,7 @@ class Ctm2Inference(object):
             self.df['desired_goal_z'] = self.desired_goals_z
             self.df['errors'] = self.errors
             self.df["time_taken"] = self.time_taken
-            self.df.to_csv('~/ctm2-stable-baselines/saved_results/traj_exp/' + 'exp_' + str(
+            self.df.to_csv('~/ctm2-stable-baselines/saved_results/new_exps/' + 'exp_' + str(
                 self.exp_id) + '_' + self.shape + '_traj.csv')
 
     def infer_to_goal(self):
@@ -148,8 +148,7 @@ class Ctm2Inference(object):
 
 
 if __name__ == '__main__':
-    # experiments = [1, 2, 3, 4, 5]
-    experiments = [4]
+    experiments = [1, 2, 4, 5, 6, 7, 9, 10, 11, 12, 14, 15]
     episode_timesteps = 150
 
     for experiment_id in experiments:
@@ -179,3 +178,6 @@ if __name__ == '__main__':
             square_inferencer.infer_to_goal()
             if rospy.is_shutdown() or square_inferencer.save:
                 break
+
+    # Shutdown command
+    os.system('systemctl poweroff')
