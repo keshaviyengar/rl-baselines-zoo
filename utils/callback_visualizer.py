@@ -17,7 +17,7 @@ MM_TO_M = 1000
 # Publish training point cloud (reached cartesian point and associated error / q-value)
 # Publish a voxel grid of training locations
 class CallbackVisualizer(object):
-    def __init__(self, log_folder, ros_flag, variable_goal_tolerance=False):
+    def __init__(self, log_folder, ros_flag, variable_goal_tolerance=True):
         self._locals = None
         self._globals = None
         self._log_folder = log_folder
@@ -44,13 +44,23 @@ class CallbackVisualizer(object):
 
         self.current_step = 0
         self.local_step = 0
-        self.save_pcd_model_intervals = [5e5, 1.0e6, 1.5e6, 1999995, 2e6]
+        self.save_pcd_model_intervals = [2.5e5, 5e5, 7.5e5, 999995, 1e6]
 
+        self.goal_tolerance_function = 'decay'
         if self._variable_goal_tolerance:
             # Variable reward goal tolerance
-            self.final_goal_tol = 0.001
+            self.final_goal_tol = 0.0005
             self.initial_goal_tol = 0.020
-            self.r = 1 - np.power((self.final_goal_tol / self.initial_goal_tol), 1 / 2e6)
+            self.n_timesteps = 1e6
+
+            if self.goal_tolerance_function == 'decay':
+                self.a = self.initial_goal_tol
+                self.r = 1 - np.power((self.final_goal_tol / self.initial_goal_tol), 1 / 2e6)
+            elif self.goal_tolerance_function == 'linear':
+                self.a = (self.final_goal_tol - self.initial_goal_tol) / self.n_timesteps
+                self.b = self.initial_goal_tol
+            else:
+                self.goal_tolerance_function = 'constant'
 
     def callback(self, _locals, _globals):
         self._locals = _locals
@@ -77,9 +87,9 @@ class CallbackVisualizer(object):
             # Save model periodically
             _locals['self'].save(self._log_folder + '/' + 'temp_saved_model.pkl')
             # Clear array
-            self.ag_points = np.empty([600000 * 19, 3], dtype=float)
-            self.errors = np.empty(600000 * 19, dtype=float)
-            self.q_values = np.empty(600000 * 19, dtype=float)
+            self.ag_points = np.empty([300000 * 19, 3], dtype=float)
+            self.errors = np.empty(300000 * 19, dtype=float)
+            self.q_values = np.empty(300000 * 19, dtype=float)
             self.local_step = 0
 
     def save_arrays(self):
@@ -148,5 +158,10 @@ class CallbackVisualizer(object):
         return np.reshape(rgb, [1, 3])
 
     def _update_goal_tolerance(self):
-        goal_tol_new = self.initial_goal_tol * np.power(1 - self.r, self.current_step) + self.final_goal_tol
+        if self.goal_tolerance_function == 'decay':
+            goal_tol_new = self.a * np.power(1 - self.r, self.current_step)
+        elif self.goal_tolerance_function == 'linear':
+            goal_tol_new = self.a * self.current_step + self.b
+        else:
+            goal_tol_new = self.initial_goal_tol
         self._locals['self'].env.env.update_goal_tolerance(goal_tol_new)

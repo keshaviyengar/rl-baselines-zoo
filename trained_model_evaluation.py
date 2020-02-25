@@ -20,12 +20,13 @@ class Ctm2Evaluation(object):
 
         self.env = HERGoalEnvWrapper(gym.make(env_id, goal_tolerance=goal_tolerance))
 
-        model_path = "/home/keshav/ctm2-stable-baselines/saved-runs/results/" + "exp_" + str(experiment_id) + "/" + env_id + ".pkl"
+        model_path = "/home/keshav/ctm2-stable-baselines/saved_results/" + "exp_" + str(experiment_id) + "/" + env_id + ".pkl"
         self.model = HER.load(model_path, env=self.env)
 
     def evaluate(self, num_timesteps):
-        successes = []
-        errors = []
+        joint_1_extension_errors = []
+        joint_2_extension_errors = []
+        joint_3_extension_errors = []
         episode_lengths = []
         episode_rewards = []
 
@@ -46,19 +47,28 @@ class Ctm2Evaluation(object):
             ep_len += 1
 
             if done or infos.get('is_success', False):
-                successes.append(infos.get('is_success', False))
-                errors.append(infos.get('error', np.inf))
-                episode_lengths.append(ep_len)
-                episode_rewards.append(episode_reward)
+                if infos.get('is_success'):
+                    rotation_1_error = np.linalg.norm(infos.get('q_achieved')[0] - infos.get('q_goal')[0])
+                    if rotation_1_error < 0.01:
+                        joint_1_extension_errors.append(rotation_1_error)
+                    rotation_2_error = np.linalg.norm(infos.get('q_achieved')[2] - infos.get('q_goal')[2])
+                    if rotation_2_error < 0.01:
+                        joint_2_extension_errors.append(rotation_2_error)
+                    rotation_3_error = np.linalg.norm(infos.get('q_achieved')[4] - infos.get('q_goal')[4])
+                    if rotation_3_error < 0.01:
+                        joint_3_extension_errors.append(rotation_3_error)
                 # Reset to new goal
                 ep_len = 0
                 obs = self.env.reset()
 
+        print(np.mean(joint_1_extension_errors))
+        print(np.mean(joint_2_extension_errors))
+        print(np.mean(joint_3_extension_errors))
         return successes, errors, episode_lengths, episode_rewards
 
 
 if __name__ == '__main__':
-    goal_tolerances = [0.0001, 0.0002, 0.0003, 0.0004, 0.0005, 0.0006, 0.0007, 0.0008, 0.0009, 0.0010]
+    goal_tolerances = [0.0004]
     goal_tolerance_array = []
     mean_ep_length_array = []
     success_array = []
@@ -67,7 +77,7 @@ if __name__ == '__main__':
 
     exp_df = pd.DataFrame(columns=['goal_tolerance', 'mean_ep_length', 'success_rate', 'mean_error', 'std_error'])
     for goal_tolerance in goal_tolerances:
-        evaluator = Ctm2Evaluation(experiment_id=9, goal_tolerance=goal_tolerance)
+        evaluator = Ctm2Evaluation(experiment_id=10, goal_tolerance=goal_tolerance)
         successes, errors, episode_lengths, episode_rewards = evaluator.evaluate(num_timesteps=5000)
         mean_ep_length_array.append(np.mean(episode_lengths))
         goal_tolerance_array.append(goal_tolerance)

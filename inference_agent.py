@@ -104,16 +104,19 @@ class Ctm2Inference(object):
         if msg.data and not self.save:
             self.save = True
             # End of trajectory, save data frame
-            self.df['achieved_goal_x'] = self.achieved_goals_x
-            self.df['achieved_goal_y'] = self.achieved_goals_y
-            self.df['achieved_goal_z'] = self.achieved_goals_z
-            self.df['desired_goal_x'] = self.desired_goals_x
-            self.df['desired_goal_y'] = self.desired_goals_y
-            self.df['desired_goal_z'] = self.desired_goals_z
-            self.df['errors'] = self.errors
-            self.df["time_taken"] = self.time_taken
-            self.df.to_csv('~/ctm2-stable-baselines/saved_results/new_exps/' + 'exp_' + str(
-                self.exp_id) + '_' + self.shape + '_traj.csv')
+            try:
+                self.df['achieved_goal_x'] = self.achieved_goals_x
+                self.df['achieved_goal_y'] = self.achieved_goals_y
+                self.df['achieved_goal_z'] = self.achieved_goals_z
+                self.df['desired_goal_x'] = self.desired_goals_x
+                self.df['desired_goal_y'] = self.desired_goals_y
+                self.df['desired_goal_z'] = self.desired_goals_z
+                self.df['errors'] = self.errors
+                self.df["time_taken"] = self.time_taken
+                self.df.to_csv('~/ctm2-stable-baselines/saved_results/temp_exps/' + 'exp_' + str(
+                    self.exp_id) + '_' + self.shape + '_traj.csv')
+            except:
+                print("Experiment " + str(self.exp_id) + " failed.")
 
     def infer_to_goal(self):
         episode_reward = 0.0
@@ -148,7 +151,8 @@ class Ctm2Inference(object):
 
 
 if __name__ == '__main__':
-    experiments = [1, 2, 4, 5, 6, 7, 9, 10, 11, 12, 14, 15]
+    # experiments = [1, 2, 4, 5, 6, 7, 9, 10, 11, 12, 14, 15]
+    experiments = [1, 9]
     episode_timesteps = 150
 
     for experiment_id in experiments:
@@ -161,23 +165,20 @@ if __name__ == '__main__':
             if rospy.is_shutdown() or circle_inferencer.save:
                 break
 
-        triangle_inferencer = Ctm2Inference(experiment_id=experiment_id, shape='triangle',
-                                            episode_timesteps=episode_timesteps,
-                                            goal_tolerance=0.001)
+        # triangle_inferencer = Ctm2Inference(experiment_id=experiment_id, shape='triangle',
+        #                                     episode_timesteps=episode_timesteps,
+        #                                     goal_tolerance=0.001)
 
-        while not triangle_inferencer.save:
-            triangle_inferencer.infer_to_goal()
-            if rospy.is_shutdown() or triangle_inferencer.save:
-                break
+        # while not triangle_inferencer.save:
+        #     triangle_inferencer.infer_to_goal()
+        #     if rospy.is_shutdown() or triangle_inferencer.save:
+        #         break
 
-        square_inferencer = Ctm2Inference(experiment_id=experiment_id, shape='square',
-                                          episode_timesteps=episode_timesteps,
-                                          goal_tolerance=0.001)
+        # square_inferencer = Ctm2Inference(experiment_id=experiment_id, shape='square',
+        #                                   episode_timesteps=episode_timesteps,
+        #                                   goal_tolerance=0.001)
 
-        while not square_inferencer.save:
-            square_inferencer.infer_to_goal()
-            if rospy.is_shutdown() or square_inferencer.save:
-                break
-
-    # Shutdown command
-    os.system('systemctl poweroff')
+        # while not square_inferencer.save:
+        #     square_inferencer.infer_to_goal()
+        #     if rospy.is_shutdown() or square_inferencer.save:
+        #         break

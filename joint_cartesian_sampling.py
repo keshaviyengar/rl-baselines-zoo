@@ -3,6 +3,8 @@ import ctm2_envs
 
 import pandas as pd
 import matplotlib.pyplot as plt
+plt.rcParams.update({'font.size': 18})
+
 import numpy as np
 
 # This script samples uniformly from the joint space of an environment, performs FK, and returns the Cartesian point.
@@ -11,9 +13,9 @@ import numpy as np
 plt.interactive(True)
 
 if __name__ == '__main__':
-    env = gym.make("Distal-4-Tube-Reach-v0", ros_flag=False)
+    env = gym.make("Distal-2-Tube-Reach-v0", ros_flag=False)
 
-    num_tubes = 4
+    num_tubes = 2
     num_samples = 10000
     alpha_joint_data = np.empty([num_samples, 2 * num_tubes])
     beta_joint_data = np.empty([num_samples, num_tubes])

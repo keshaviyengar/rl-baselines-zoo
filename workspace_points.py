@@ -370,6 +370,7 @@ class WorkspaceAgent(object):
 
 if __name__ == '__main__':
     import matplotlib.pyplot as plt
+    plt.rcParams.update({'font.size': 18})
     num_tubes = 4
     agent = WorkspaceAgent(num_tubes=num_tubes)
     if num_tubes == 2:
@@ -384,7 +385,8 @@ if __name__ == '__main__':
         ax.set_ylabel('z (mm)')
 
         plt.axis('equal')
-        plt.savefig('2-tube-workspace.png', dpi=300)
+        plt.show()
+        # plt.savefig('2-tube-workspace.png', dpi=300)
 
     if num_tubes == 3:
         tube_0_points, tube_1_points, tube_2_points = agent.get_three_tube_workspace()
@@ -400,7 +402,8 @@ if __name__ == '__main__':
         ax.set_ylabel('z (mm)')
 
         plt.axis('equal')
-        plt.savefig('3-tube-workspace.png', dpi=300)
+        plt.show()
+        # plt.savefig('3-tube-workspace.png', dpi=300)
 
     if num_tubes == 4:
         tube_0_points, tube_1_points, tube_2_points, tube_3_points = agent.get_four_tube_workspace()
@@ -418,4 +421,5 @@ if __name__ == '__main__':
         ax.set_ylabel('z (mm)')
 
         plt.axis('equal')
-        plt.savefig('4-tube-workspace.png', dpi=300)
+        plt.show()
+        # plt.savefig('4-tube-workspace.png', dpi=300)

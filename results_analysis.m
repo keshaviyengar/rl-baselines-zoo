@@ -3,143 +3,149 @@
 
 % Load in learning data
 % 2-tube
-exp_1 = readtable('~/ctm2-stable-baselines/saved-runs/results/exp_1/progress.csv');
-exp_2 = readtable('~/ctm2-stable-baselines/saved-runs/results/exp_2/progress.csv');
-exp_4 = readtable('~/ctm2-stable-baselines/saved-runs/results/exp_4/progress.csv');
-exp_5 = readtable('~/ctm2-stable-baselines/saved-runs/results/exp_5/progress.csv');
+exp_1 = readtable('~/ctm2-stable-baselines/saved_results/exp_1/progress.csv');
+exp_2 = readtable('~/ctm2-stable-baselines/saved_results/exp_2/progress.csv');
+exp_4 = readtable('~/ctm2-stable-baselines/saved_results/exp_4/progress.csv');
+exp_5 = readtable('~/ctm2-stable-baselines/saved_results/exp_5/progress.csv');
 % 3-tube
-exp_6 = readtable('~/ctm2-stable-baselines/saved-runs/results/exp_6/progress.csv');
-exp_7 = readtable('~/ctm2-stable-baselines/saved-runs/results/exp_7/progress.csv');
-exp_9 = readtable('~/ctm2-stable-baselines/saved-runs/results/exp_9/progress.csv');
-exp_10 = readtable('~/ctm2-stable-baselines/saved-runs/results/exp_10/progress.csv');
+exp_6 = readtable('~/ctm2-stable-baselines/saved_results/exp_6/progress.csv');
+exp_7 = readtable('~/ctm2-stable-baselines/saved_results/exp_7/progress.csv');
+exp_9 = readtable('~/ctm2-stable-baselines/saved_results/exp_9/progress.csv');
+exp_10 = readtable('~/ctm2-stable-baselines/saved_results/exp_10/progress.csv');
 % 4-tube
-exp_11 = readtable('~/ctm2-stable-baselines/saved-runs/results/exp_11/progress.csv');
-exp_12 = readtable('~/ctm2-stable-baselines/saved-runs/results/exp_12/progress.csv');
-exp_14 = readtable('~/ctm2-stable-baselines/saved-runs/results/exp_14/progress.csv');
-exp_15 = readtable('~/ctm2-stable-baselines/saved-runs/results/exp_15/progress.csv');
+exp_11 = readtable('~/ctm2-stable-baselines/saved_results/exp_11/progress.csv');
+exp_12 = readtable('~/ctm2-stable-baselines/saved_results/exp_12/progress.csv');
+exp_14 = readtable('~/ctm2-stable-baselines/saved_results/exp_14/progress.csv');
+exp_15 = readtable('~/ctm2-stable-baselines/saved_results/exp_15/progress.csv');
 %% 2 tube plotting
 % Success rate and error in single plot.
 fig = figure;
 set(fig,'defaultAxesColorOrder',[[0, 0, 0]; [0, 0, 0]]);
-plot(exp_1.total_steps, exp_1.successRate * 100,'r', 'DisplayName','Type 1 success rate')
+plot(exp_1.total_steps, exp_1.successRate * 100, 'Color','[0, 0.4470, 0.7410]', 'LineWidth', 4, 'DisplayName','Type 1 success rate')
 hold on
-plot(exp_2.total_steps, exp_2.successRate * 100, 'b', 'DisplayName','Type 2 success rate')
+plot(exp_2.total_steps, exp_2.successRate * 100, 'Color', '[0.8500, 0.3250, 0.0980]', 'LineWidth', 4, 'DisplayName','Type 2 success rate')
 hold on
-plot(exp_4.total_steps, exp_4.successRate * 100, 'g','DisplayName','Type 3 success rate')
+plot(exp_4.total_steps, exp_4.successRate * 100, 'Color', '[0.4940, 0.1840, 0.5560]', 'LineWidth', 4, 'DisplayName','Type 3 success rate')
 hold on
-plot(exp_5.total_steps, exp_5.successRate * 100, 'k','DisplayName','Type 4 success rate')
+plot(exp_5.total_steps, exp_5.successRate * 100, 'Color', '[0.4660, 0.6740, 0.1880]', 'LineWidth', 4, 'DisplayName','Type 4 success rate')
 hold on
 xlabel('Training steps')
 ylabel('Success rate (%)')
 yyaxis right
-plot(exp_1.total_steps, exp_1.eval_errors * 1000, 'r--', 'DisplayName','Type 1 evaluation error')
+plot(exp_1.total_steps, exp_1.eval_errors * 1000, 'Color','[0, 0.4470, 0.7410]', 'LineStyle', '--', 'LineWidth', 4, 'DisplayName','Type 1 evaluation error')
 hold on
-plot(exp_2.total_steps, exp_2.eval_errors * 1000, 'b--', 'DisplayName','Type 2 evaluation error')
+plot(exp_2.total_steps, exp_2.eval_errors * 1000, 'Color', '[0.8500, 0.3250, 0.0980]', 'LineStyle', '--', 'LineWidth', 4, 'DisplayName','Type 2 evaluation error')
 hold on
-plot(exp_4.total_steps, exp_4.eval_errors * 1000, 'g--', 'DisplayName','Type 3 evaluation error')
+plot(exp_4.total_steps, exp_4.eval_errors * 1000, 'Color', '[0.4940, 0.1840, 0.5560]', 'LineStyle', '--', 'LineWidth', 4, 'DisplayName','Type 3 evaluation error')
 hold on
-plot(exp_5.total_steps, exp_5.eval_errors * 1000, 'k--', 'DisplayName','Type 4 evaluation error')
+plot(exp_5.total_steps, exp_5.eval_errors * 1000, 'Color', '[0.4660, 0.6740, 0.1880]', 'LineStyle', '--', 'LineWidth', 4, 'DisplayName','Type 4 evaluation error')
 ylabel('Error (mm)')
-legend
+set(gca,'FontSize',15)
 %% 3 tube plotting
 % Success rate and error in single plot.
 fig = figure;
 set(fig,'defaultAxesColorOrder',[[0, 0, 0]; [0, 0, 0]]);
-plot(exp_6.total_steps, exp_6.successRate * 100,'r', 'DisplayName','Type 1 success rate')
+plot(exp_6.total_steps, exp_6.successRate * 100,'Color','[0, 0.4470, 0.7410]', 'LineWidth', 4, 'DisplayName','Type 1 success rate')
 hold on
-plot(exp_7.total_steps, exp_7.successRate * 100, 'b', 'DisplayName','Type 2 success rate')
+plot(exp_7.total_steps, exp_7.successRate * 100, 'Color', '[0.8500, 0.3250, 0.0980]', 'LineWidth', 4, 'DisplayName','Type 2 success rate')
 hold on
-plot(exp_9.total_steps, exp_9.successRate * 100, 'g','DisplayName','Type 3 success rate')
+plot(exp_9.total_steps, exp_9.successRate * 100, 'Color', '[0.4940, 0.1840, 0.5560]', 'LineWidth', 4, 'DisplayName','Type 3 success rate')
 hold on
-plot(exp_10.total_steps, exp_10.successRate * 100, 'k','DisplayName','Type 4 success rate')
+plot(exp_10.total_steps, exp_10.successRate * 100, 'Color', '[0.4660, 0.6740, 0.1880]', 'LineWidth', 4,'DisplayName','Type 4 success rate')
 hold on
-xlabel('Training steps')
+xlabel('Training steps')    
 ylabel('Success rate')
 yyaxis right
-plot(exp_6.total_steps, exp_6.eval_errors * 1000, 'r--', 'DisplayName','Type 1 evaluation error')
+plot(exp_6.total_steps, exp_6.eval_errors * 1000, 'Color','[0, 0.4470, 0.7410]', 'LineStyle', '--', 'LineWidth', 4, 'DisplayName','Type 1 evaluation error')
 hold on
-plot(exp_7.total_steps, exp_7.eval_errors * 1000, 'b--', 'DisplayName','Type 2 evaluation error')
+plot(exp_7.total_steps, exp_7.eval_errors * 1000, 'Color', '[0.8500, 0.3250, 0.0980]', 'LineStyle', '--', 'LineWidth', 4, 'DisplayName','Type 2 evaluation error')
 hold on
-plot(exp_9.total_steps, exp_9.eval_errors * 1000, 'g--', 'DisplayName','Type 3 evaluation error')
+plot(exp_9.total_steps, exp_9.eval_errors * 1000, 'Color', '[0.4940, 0.1840, 0.5560]', 'LineStyle', '--', 'LineWidth', 4, 'DisplayName','Type 3 evaluation error')
 hold on
-plot(exp_10.total_steps, exp_10.eval_errors * 1000, 'k--', 'DisplayName','Type 4 evaluation error')
+plot(exp_10.total_steps, exp_10.eval_errors * 1000, 'Color', '[0.4660, 0.6740, 0.1880]', 'LineStyle', '--', 'LineWidth', 4, 'DisplayName','Type 4 evaluation error')
 ylabel('Error (mm)')
-
+set(gca,'FontSize',15)
 %% 4 tube plotting
 % Success rate and error in single plot.
 fig = figure;
 set(fig,'defaultAxesColorOrder',[[0, 0, 0]; [0, 0, 0]]);
-plot(exp_11.total_steps, exp_11.successRate * 100,'r', 'DisplayName','Type 1 success rate')
+plot(exp_11.total_steps, exp_11.successRate * 100, 'Color','[0, 0.4470, 0.7410]', 'LineWidth', 4, 'DisplayName','Type 1 success rate')
 hold on
-plot(exp_12.total_steps, exp_12.successRate * 100, 'b', 'DisplayName','Type 2 success rate')
+plot(exp_12.total_steps, exp_12.successRate * 100, 'Color', '[0.8500, 0.3250, 0.0980]', 'LineWidth', 4, 'DisplayName','Type 2 success rate')
 hold on
-plot(exp_14.total_steps, exp_14.successRate * 100, 'g','DisplayName','Type 3 success rate')
+plot(exp_14.total_steps, exp_14.successRate * 100, 'Color', '[0.4940, 0.1840, 0.5560]', 'LineWidth', 4, 'DisplayName','Type 3 success rate')
 hold on
-plot(exp_15.total_steps, exp_15.successRate * 100, 'k','DisplayName','Type 4 success rate')
+plot(exp_15.total_steps, exp_15.successRate * 100, 'Color', '[0.4660, 0.6740, 0.1880]', 'LineWidth', 4, 'DisplayName','Type 4 success rate')
 hold on
 xlabel('Training steps')
 ylabel('Success rate')
 yyaxis right
-plot(exp_11.total_steps, exp_11.eval_errors * 1000, 'r--', 'DisplayName','Type 1 evaluation error')
+plot(exp_11.total_steps, exp_11.eval_errors * 1000, 'Color','[0, 0.4470, 0.7410]', 'LineStyle', '--', 'LineWidth', 4, 'DisplayName','Type 1 evaluation error')
 hold on
-plot(exp_12.total_steps, exp_12.eval_errors * 1000, 'b--', 'DisplayName','Type 2 evaluation error')
+plot(exp_12.total_steps, exp_12.eval_errors * 1000, 'Color', '[0.8500, 0.3250, 0.0980]', 'LineStyle', '--', 'LineWidth', 4, 'DisplayName','Type 2 evaluation error')
 hold on
-plot(exp_14.total_steps, exp_14.eval_errors * 1000, 'g--', 'DisplayName','Type 3 evaluation error')
+plot(exp_14.total_steps, exp_14.eval_errors * 1000, 'Color', '[0.4940, 0.1840, 0.5560]', 'LineStyle', '--', 'LineWidth', 4, 'DisplayName','Type 3 evaluation error')
 hold on
-plot(exp_15.total_steps, exp_15.eval_errors * 1000, 'k--', 'DisplayName','Type 4 evaluation error')
+plot(exp_15.total_steps, exp_15.eval_errors * 1000, 'Color', '[0.4660, 0.6740, 0.1880]', 'LineStyle', '--', 'LineWidth', 4, 'DisplayName','Type 4 evaluation error')
 ylabel('Error (mm)')
-legend
+set(gca,'FontSize',15)
 %% Load in evaluation data
 % Load in eval data
 % 2-tube
-exp_1 = readtable('~/ctm2-stable-baselines/saved-runs/results/exp_1/eval.csv');
-exp_2 = readtable('~/ctm2-stable-baselines/saved-runs/results/exp_2/eval.csv');
-exp_4 = readtable('~/ctm2-stable-baselines/saved-runs/results/exp_4/eval.csv');
-exp_5 = readtable('~/ctm2-stable-baselines/saved-runs/results/exp_5/eval.csv');
+exp_1 = readtable('~/ctm2-stable-baselines/saved_results/exp_1/eval.csv');
+exp_2 = readtable('~/ctm2-stable-baselines/saved_results/exp_2/eval.csv');
+exp_4 = readtable('~/ctm2-stable-baselines/saved_results/exp_4/eval.csv');
+exp_5 = readtable('~/ctm2-stable-baselines/saved_results/exp_5/eval.csv');
 % 3-tube
-exp_6 = readtable('~/ctm2-stable-baselines/saved-runs/results/exp_6/eval.csv');
-exp_7 = readtable('~/ctm2-stable-baselines/saved-runs/results/exp_7/eval.csv');
-exp_9 = readtable('~/ctm2-stable-baselines/saved-runs/results/exp_9/eval.csv');
-exp_10 = readtable('~/ctm2-stable-baselines/saved-runs/results/exp_10/eval.csv');
+exp_6 = readtable('~/ctm2-stable-baselines/saved_results/exp_6/eval.csv');
+exp_7 = readtable('~/ctm2-stable-baselines/saved_results/exp_7/eval.csv');
+exp_9 = readtable('~/ctm2-stable-baselines/saved_results/exp_9/eval.csv');
+exp_10 = readtable('~/ctm2-stable-baselines/saved_results/exp_10/eval.csv');
 % 4-tube
-exp_11 = readtable('~/ctm2-stable-baselines/saved-runs/results/exp_11/eval.csv');
-exp_12 = readtable('~/ctm2-stable-baselines/saved-runs/results/exp_12/eval.csv');
-exp_14 = readtable('~/ctm2-stable-baselines/saved-runs/results/exp_14/eval.csv');
-exp_15 = readtable('~/ctm2-stable-baselines/saved-runs/results/exp_15/eval.csv');
+exp_11 = readtable('~/ctm2-stable-baselines/saved_results/exp_11/eval.csv');
+exp_12 = readtable('~/ctm2-stable-baselines/saved_results/exp_12/eval.csv');
+exp_14 = readtable('~/ctm2-stable-baselines/saved_results/exp_14/eval.csv');
+exp_15 = readtable('~/ctm2-stable-baselines/saved_results/exp_15/eval.csv');
 
 %% 2-tube plotting
-errorbar(exp_1.goal_tolerance * 1000, exp_1.mean_error * 1000, exp_1.std_error / 2 * 1000, exp_1.std_error / 2 * 1000, 'r', 'DisplayName','Single Gaussian mean evaluation error')
+errorbar(exp_1.goal_tolerance * 1000, exp_1.mean_error * 1000, exp_1.std_error / 2 * 1000, exp_1.std_error / 2 * 1000, 'Color','[0, 0.4470, 0.7410]', 'LineWidth', 2, 'DisplayName','Single Gaussian mean evaluation error')
 hold on
-errorbar(exp_2.goal_tolerance * 1000, exp_2.mean_error * 1000, exp_2.std_error / 2 * 1000, exp_2.std_error / 2 * 1000, 'b', 'DisplayName','Multivariate Gaussian mean evaluation error')
+errorbar(exp_2.goal_tolerance * 1000, exp_2.mean_error * 1000, exp_2.std_error / 2 * 1000, exp_2.std_error / 2 * 1000, 'Color', '[0.8500, 0.3250, 0.0980]', 'LineWidth', 2, 'DisplayName','Multivariate Gaussian mean evaluation error')
 hold on
-errorbar(exp_4.goal_tolerance * 1000, exp_4.mean_error * 1000, exp_4.std_error / 2 * 1000, exp_4.std_error / 2 * 1000, 'g', 'DisplayName','Parameter Noise mean evaluation error')
+errorbar(exp_4.goal_tolerance * 1000, exp_4.mean_error * 1000, exp_4.std_error / 2 * 1000, exp_4.std_error / 2 * 1000, 'Color', '[0.4940, 0.1840, 0.5560]', 'LineWidth', 2, 'DisplayName','Parameter Noise mean evaluation error')
 hold on
-errorbar(exp_5.goal_tolerance * 1000, exp_5.mean_error * 1000, exp_5.std_error / 2 * 1000, exp_5.std_error / 2 * 1000, 'k', 'DisplayName','OU mean evaluation error')
+errorbar(exp_5.goal_tolerance * 1000, exp_5.mean_error * 1000, exp_5.std_error / 2 * 1000, exp_5.std_error / 2 * 1000, 'Color', '[0.4660, 0.6740, 0.1880]', 'LineWidth', 2, 'DisplayName','OU mean evaluation error')
 xlabel('Goal tolerance (mm)')
 ylabel('Error (mm)')
 xlim([0 1.1 ])
+ylim([0, 2])
+set(gca,'FontSize',15)
 %% 3-tube plotting
-errorbar(exp_6.goal_tolerance * 1000, exp_6.mean_error * 1000, exp_6.std_error / 2 * 1000, exp_6.std_error / 2 * 1000, 'r', 'DisplayName','Single Gaussian mean evaluation error')
+errorbar(exp_6.goal_tolerance * 1000, exp_6.mean_error * 1000, exp_6.std_error / 2 * 1000, exp_6.std_error / 2 * 1000, 'Color','[0, 0.4470, 0.7410]', 'LineWidth', 2, 'DisplayName','Single Gaussian mean evaluation error')
 hold on
-errorbar(exp_7.goal_tolerance * 1000, exp_7.mean_error * 1000, exp_7.std_error / 2 * 1000, exp_7.std_error / 2 * 1000, 'b', 'DisplayName','Multivariate Gaussian mean evaluation error')
+errorbar(exp_7.goal_tolerance * 1000, exp_7.mean_error * 1000, exp_7.std_error / 2 * 1000, exp_7.std_error / 2 * 1000, 'Color', '[0.8500, 0.3250, 0.0980]', 'LineWidth', 2, 'DisplayName','Multivariate Gaussian mean evaluation error')
 hold on
-errorbar(exp_9.goal_tolerance * 1000, exp_9.mean_error * 1000, exp_9.std_error / 2 * 1000, exp_9.std_error / 2 * 1000, 'g', 'DisplayName','Parameter Noise mean evaluation error')
+errorbar(exp_9.goal_tolerance * 1000, exp_9.mean_error * 1000, exp_9.std_error / 2 * 1000, exp_9.std_error / 2 * 1000, 'Color', '[0.4940, 0.1840, 0.5560]', 'LineWidth', 2, 'DisplayName','Parameter Noise mean evaluation error')
 hold on
-errorbar(exp_10.goal_tolerance * 1000, exp_10.mean_error * 1000, exp_10.std_error / 2 * 1000, exp_10.std_error / 2 * 1000, 'k', 'DisplayName','OU mean evaluation error')
+errorbar(exp_10.goal_tolerance * 1000, exp_10.mean_error * 1000, exp_10.std_error / 2 * 1000, exp_10.std_error / 2 * 1000, 'Color', '[0.4660, 0.6740, 0.1880]', 'LineWidth', 2, 'DisplayName','OU mean evaluation error')
 xlabel('Goal tolerance (mm)')
 ylabel('Error (mm)')
 xlim([0 1.1 ])
+ylim([0, 2])
+set(gca,'FontSize',15)
 %% 4-tube plotting
-errorbar(exp_11.goal_tolerance * 1000, exp_11.mean_error * 1000, exp_11.std_error / 2 * 1000, exp_11.std_error / 2 * 1000, 'r', 'DisplayName','Single Gaussian mean evaluation error')
+errorbar(exp_11.goal_tolerance * 1000, exp_11.mean_error * 1000, exp_11.std_error / 2 * 1000, exp_11.std_error / 2 * 1000, 'Color','[0, 0.4470, 0.7410]', 'LineWidth', 2, 'DisplayName','Single Gaussian mean evaluation error')
 hold on
-errorbar(exp_12.goal_tolerance * 1000, exp_12.mean_error * 1000, exp_12.std_error / 2 * 1000, exp_12.std_error / 2 * 1000, 'b', 'DisplayName','Multivariate Gaussian mean evaluation error')
+errorbar(exp_12.goal_tolerance * 1000, exp_12.mean_error * 1000, exp_12.std_error / 2 * 1000, exp_12.std_error / 2 * 1000, 'Color', '[0.8500, 0.3250, 0.0980]', 'LineWidth', 2, 'DisplayName','Multivariate Gaussian mean evaluation error')
 hold on
-errorbar(exp_14.goal_tolerance * 1000, exp_14.mean_error * 1000, exp_14.std_error / 2 * 1000, exp_14.std_error / 2 * 1000, 'g', 'DisplayName','Parameter Noise mean evaluation error')
+errorbar(exp_14.goal_tolerance * 1000, exp_14.mean_error * 1000, exp_14.std_error / 2 * 1000, exp_14.std_error / 2 * 1000, 'Color', '[0.4940, 0.1840, 0.5560]', 'LineWidth', 2, 'DisplayName','Parameter Noise mean evaluation error')
 hold on
-errorbar(exp_15.goal_tolerance * 1000, exp_15.mean_error * 1000, exp_15.std_error / 2 * 1000, exp_15.std_error / 2 * 1000, 'k', 'DisplayName','OU mean evaluation error')
+errorbar(exp_15.goal_tolerance * 1000, exp_15.mean_error * 1000, exp_15.std_error / 2 * 1000, exp_15.std_error / 2 * 1000, 'Color', '[0.4660, 0.6740, 0.1880]', 'LineWidth', 2, 'DisplayName','OU mean evaluation error')
 xlabel('Goal tolerance (mm)')
 ylabel('Error (mm)')
 xlim([0 1.1 ])
+ylim([0, 2])
+set(gca,'FontSize',15)
 %% Load in trajectory data
 exp_1 = readtable('~/ctm2-stable-baselines/saved-runs/results/exp_1/square_traj.csv');
 exp_1(1,:) = [];
