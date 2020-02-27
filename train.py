@@ -92,6 +92,9 @@ if __name__ == '__main__':
                         default='', type=str)
     parser.add_argument('--experiment-id', help='Choose the experiment number. Refer to the excel sheet.',
                         default=0, type=int)
+    parser.add_argument('--tol-exp-id',
+                        help='Choose the experiment number for exact, curriculum experiments.1: exp decay, 2: linear, 3: constant',
+                        default=3, type=int)
     args = parser.parse_args()
 
     # Set log directory
@@ -466,9 +469,9 @@ if __name__ == '__main__':
 
         # If render type is not none, we need to set ros flag to publish point clouds, else we don't need ros
         if args.render_type != '':
-            callback_visualizer = CallbackVisualizer(args.log_folder, ros_flag=True)
+            callback_visualizer = CallbackVisualizer(args.log_folder, ros_flag=True, exp_id=args.tol_exp_id)
         else:
-            callback_visualizer = CallbackVisualizer(args.log_folder, ros_flag=False)
+            callback_visualizer = CallbackVisualizer(args.log_folder, ros_flag=False, exp_id=args.tol_exp_id)
 
         kwargs['callback'] = callback_visualizer.callback
 

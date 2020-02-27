@@ -17,12 +17,20 @@ MM_TO_M = 1000
 # Publish training point cloud (reached cartesian point and associated error / q-value)
 # Publish a voxel grid of training locations
 class CallbackVisualizer(object):
-    def __init__(self, log_folder, ros_flag, variable_goal_tolerance=True):
+    def __init__(self, log_folder, ros_flag, variable_goal_tolerance=True, exp_id=None):
         self._locals = None
         self._globals = None
         self._log_folder = log_folder
         self._ros_flag = ros_flag
         self._variable_goal_tolerance = variable_goal_tolerance
+        if exp_id == 1:
+            self.goal_tolerance_function = 'decay'
+        elif exp_id == 2:
+            self.goal_tolerance_function = 'linear'
+        elif exp_id == 3:
+            self.goal_tolerance_function = 'constant'
+        else:
+            print('Incorrect experiment id selected.')
         if self._ros_flag:
             import rospy
             import std_msgs.msg
@@ -50,7 +58,7 @@ class CallbackVisualizer(object):
         if self._variable_goal_tolerance:
             # Variable reward goal tolerance
             self.final_goal_tol = 0.0005
-            self.initial_goal_tol = 0.020
+            self.initial_goal_tol = 0.100
             self.n_timesteps = 1e6
 
             if self.goal_tolerance_function == 'decay':
