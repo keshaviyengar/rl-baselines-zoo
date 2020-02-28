@@ -54,7 +54,6 @@ class CallbackVisualizer(object):
         self.local_step = 0
         self.save_pcd_model_intervals = [2.5e5, 5e5, 7.5e5, 999995, 1e6]
 
-        self.goal_tolerance_function = 'decay'
         if self._variable_goal_tolerance:
             # Variable reward goal tolerance
             self.final_goal_tol = 0.0005
@@ -171,5 +170,5 @@ class CallbackVisualizer(object):
         elif self.goal_tolerance_function == 'linear':
             goal_tol_new = self.a * self.current_step + self.b
         else:
-            goal_tol_new = self.initial_goal_tol
+            goal_tol_new = self.final_goal_tol
         self._locals['self'].env.env.update_goal_tolerance(goal_tol_new)
