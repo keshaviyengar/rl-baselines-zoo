@@ -170,5 +170,5 @@ class CallbackVisualizer(object):
         elif self.goal_tolerance_function == 'linear':
             goal_tol_new = self.a * self.current_step + self.b
         else:
-            goal_tol_new = self.initial_goal_tol
+            goal_tol_new = self.final_goal_tol
         self._locals['self'].env.env.update_goal_tolerance(goal_tol_new)
