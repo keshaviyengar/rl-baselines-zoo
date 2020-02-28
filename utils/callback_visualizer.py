@@ -54,11 +54,10 @@ class CallbackVisualizer(object):
         self.local_step = 0
         self.save_pcd_model_intervals = [2.5e5, 5e5, 7.5e5, 999995, 1e6]
 
-        self.goal_tolerance_function = 'decay'
         if self._variable_goal_tolerance:
             # Variable reward goal tolerance
-            self.final_goal_tol = 0.0005
-            self.initial_goal_tol = 0.100
+            self.final_goal_tol = 0.0001
+            self.initial_goal_tol = 0.050
             self.n_timesteps = 1e6
 
             if self.goal_tolerance_function == 'decay':
