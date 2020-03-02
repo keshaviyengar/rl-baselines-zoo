@@ -185,6 +185,8 @@ Distal-2-Tube-Reach-v0:
   # Hyperparameter search single noise
   noise_std: 0.35
   # noise_std: [0.025, 0.00065, 0.025, 0.00065]
+  # theta: 0.3
+  # noise_mean: [0, 0.15, 0 , 0.10]
   normalize_observations: true
   normalize_returns: true
   nb_eval_steps: 200
@@ -207,7 +209,10 @@ Distal-3-Tube-Reach-v0:
   noise_type: 'normal'
   # Hyperparameter search single noise
   noise_std: 0.35
-  # noise_std: [0.025, 0.0009, 0.025, 0.0004, 0.025, 0.0004]
+  # OU Noise
+  # noise_std: [0.025, 0.00065, 0.025, 0.00065, 0.025, 0.00065]
+  # theta: 0.3
+  # noise_mean: [0, 0.15, 0 , 0.10, 0, 0.07]
   normalize_observations: true
   normalize_returns: true
   nb_eval_steps: 200
@@ -231,6 +236,8 @@ Distal-4-Tube-Reach-v0:
   # Hyperparameter search single noise
   noise_std: 0.24
   # noise_std: [0.025, 0.00065, 0.025, 0.00065, 0.025, 0.00065, 0.025, 0.00065]
+  # theta: 0.3
+  # noise_mean: [0, 0.15, 0 , 0.10, 0, 0.07, 0.02]
   normalize_observations: true
   normalize_returns: true
   nb_eval_steps: 200

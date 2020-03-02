@@ -16,7 +16,7 @@ MM_TO_M = 1000
 # Publish joint states during training and / or evaluation.
 # Publish training point cloud (reached cartesian point and associated error / q-value)
 # Publish a voxel grid of training locations
-class CallbackVisualizer(object):
+class CallbackObject(object):
     def __init__(self, log_folder, ros_flag, variable_goal_tolerance=True, exp_id=None):
         self._locals = None
         self._globals = None

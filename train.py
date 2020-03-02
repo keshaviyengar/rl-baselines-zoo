@@ -37,27 +37,10 @@ from stable_baselines.her.utils import HERGoalEnvWrapper
 
 import ctm2_envs
 import ctr_envs
-from utils.callback_visualizer import CallbackVisualizer
+from utils.callback_object import CallbackObject
 import pandas as pd
 
 from stable_baselines.logger import configure
-
-
-def callback(_locals, _globals):
-    if 'train_goal_data' not in _locals.keys():
-        _locals['train_goal_data'] = pd.DataFrame(columns=['x', 'y', 'z', 'error'])
-    if _locals['done']:
-        observation = _locals['self'].env.convert_obs_to_dict(_locals['new_obs'])
-        ag = observation['achieved_goal']
-        error = _locals['info']['error']
-        train_df = pd.DataFrame({"x": ag[0], "y": ag[1], "z": ag[2], "error": error}, index=[0])
-        _locals['train_goal_data'] = _locals['train_goal_data'].append(train_df)
-    if _locals['total_steps'] % 200 == 0:
-        with open('logs/training_data.csv', 'a') as writer:
-            _locals['train_goal_data'].to_csv(writer, header=False)
-            _locals['train_goal_data'] = pd.DataFrame(columns=['x', 'y', 'z', 'error'])
-    return True
-
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
@@ -65,8 +48,11 @@ if __name__ == '__main__':
     parser.add_argument('-tb', '--tensorboard-log', help='Tensorboard log dir', default='', type=str)
     parser.add_argument('-i', '--trained-agent', help='Path to a pretrained agent to continue training',
                         default='', type=str)
-    parser.add_argument('--load-weights-from-experiment',
-                        help='Load the policy weights and shared weights from a saved experiment',
+    parser.add_argument('--load-weights-file',
+                        help='Load the policy weights and shared weights.',
+                        default='', type=str)
+    parser.add_argument('--load-weights-env',
+                        help='Specify the environment from which weights have been loaded.',
                         default='', type=str)
     parser.add_argument('--algo', help='RL Algorithm', default='ppo2',
                         type=str, required=False, choices=list(ALGOS.keys()))
@@ -90,9 +76,10 @@ if __name__ == '__main__':
                         help='Additional external Gym environment package modules to import (e.g. gym_minigrid)')
     parser.add_argument('--render-type', help='Choose a rendering type during evaluation: empty, record or human',
                         default='', type=str)
-    parser.add_argument('--experiment-id', help='Choose the experiment number. Refer to the excel sheet.',
+    parser.add_argument('--noise-experiment-id',
+                        help='Choose the experiment number. Refer to the excel sheet or comments in code.',
                         default=0, type=int)
-    parser.add_argument('--tol-exp-id',
+    parser.add_argument('--goal-tolerance-exp-id',
                         help='Choose the experiment number for exact, curriculum experiments.1: exp decay, 2: linear, 3: constant',
                         default=3, type=int)
     args = parser.parse_args()
@@ -161,68 +148,75 @@ if __name__ == '__main__':
             else:
                 raise ValueError("Hyperparameters not found for {}-{}".format(args.algo, env_id))
 
-        # Sort hyperparams that will be saved
-        saved_hyperparams = OrderedDict([(key, hyperparams[key]) for key in sorted(hyperparams.keys())])
-
-        if args.experiment_id == 1:
+        # Noise experiments
+        # 1-5: 2 Tube, 6-10: 3 Tube, 11-15: 4 Tube
+        # 1,6,11: Gaussian noise
+        # 2,7,12: Multivariate Gaussian noise
+        # 3,8,13: Two tube optimized noise
+        # 4,9,14: Parameter noise
+        # 5,10,15: OU Noise
+        if args.noise_experiment_id == 1:
             print("two tube gaussian noise 0.35 std")
             hyperparams['noise_type'] = 'normal'
             hyperparams['noise_std'] = 0.35
-        elif args.experiment_id == 2:
+        elif args.noise_experiment_id == 2:
             print("two tube gaussian seperate noise 0.025, 0.00065 std")
             hyperparams['noise_type'] = 'normal'
             hyperparams['noise_std'] = [0.025, 0.00065, 0.025, 0.00065]
-        elif args.experiment_id == 3:
+        elif args.noise_experiment_id == 3:
             print("two tube varied gaussian noise 0.0009, 0.0004 std")
             hyperparams['noise_type'] = 'normal'
             hyperparams['noise_std'] = [0.025, 0.0009, 0.025, 0.0004]
-        elif args.experiment_id == 4:
+        elif args.noise_experiment_id == 4:
             print("two tube parameter noise 0.24 std")
             hyperparams['noise_type'] = 'adaptive-param'
             hyperparams['noise_std'] = 0.24
-        elif args.experiment_id == 5:
+        elif args.noise_experiment_id == 5:
             print("two tube OU noise")
             hyperparams['noise_type'] = 'ornstein-uhlenbeck'
-        elif args.experiment_id == 6:
+        elif args.noise_experiment_id == 6:
             print("three tube gaussian noise 0.35 std")
             hyperparams['noise_type'] = 'normal'
             hyperparams['noise_std'] = 0.35
-        elif args.experiment_id == 7:
+        elif args.noise_experiment_id == 7:
             print("three tube gaussian noise 0.025, 0.00065 std")
             hyperparams['noise_type'] = 'normal'
             hyperparams['noise_std'] = [0.025, 0.00065, 0.025, 0.00065, 0.025, 0.00065]
-        elif args.experiment_id == 8:
+        elif args.noise_experiment_id == 8:
             print("three tube varied gaussian noise 0.0009, 0.0009, 0.0004 std")
             hyperparams['noise_type'] = 'normal'
             hyperparams['noise_std'] = [0.025, 0.0009, 0.025, 0.0009, 0.025, 0.0004]
-        elif args.experiment_id == 9:
+        elif args.noise_experiment_id == 9:
             print("three tube parameter noise 0.24 std")
             hyperparams['noise_type'] = 'adaptive-param'
             hyperparams['noise_std'] = 0.24
-        elif args.experiment_id == 10:
+        elif args.noise_experiment_id == 10:
             print("three tube OU noise")
             hyperparams['noise_type'] = 'ornstein-uhlenbeck'
-        elif args.experiment_id == 11:
+        elif args.noise_experiment_id == 11:
             print("four tube gaussian noise 0.35 std")
             hyperparams['noise_type'] = 'normal'
             hyperparams['noise_std'] = 0.35
-        elif args.experiment_id == 12:
+        elif args.noise_experiment_id == 12:
             print("four tube gaussian noise 0.025, 0.00065 std")
             hyperparams['noise_type'] = 'normal'
             hyperparams['noise_std'] = [0.025, 0.00065, 0.025, 0.00065, 0.025, 0.00065, 0.025, 0.00065]
-        elif args.experiment_id == 13:
+        elif args.noise_experiment_id == 13:
             print("four tube varied gaussian noise 0.0009, 0.0009, 0.0009, 0.0004 std")
             hyperparams['noise_type'] = 'normal'
             hyperparams['noise_std'] = [0.025, 0.0009, 0.025, 0.0009, 0.025, 0.0009, 0.025, 0.0009]
-        elif args.experiment_id == 14:
+        elif args.noise_experiment_id == 14:
             print("four tube parameter noise 0.24 std")
             hyperparams['noise_type'] = 'adaptive-param'
             hyperparams['noise_std'] = 0.24
-        elif args.experiment_id == 15:
+        elif args.noise_experiment_id == 15:
             print("four tube OU noise")
             hyperparams['noise_type'] = 'ornstein-uhlenbeck'
         else:
-            print("Non experiment being used.")
+            print("Non experiment being used, incorrect selection.")
+
+        # Sort hyperparams that will be saved
+        saved_hyperparams = OrderedDict([(key, hyperparams[key]) for key in sorted(hyperparams.keys())])
 
         algo_ = args.algo
         # HER is only a wrapper around an algo
@@ -368,45 +362,21 @@ if __name__ == '__main__':
                     hyperparams['action_noise'] = NormalActionNoise(mean=np.zeros(n_actions),
                                                                     sigma=noise_std * np.ones(n_actions))
             elif 'ornstein-uhlenbeck' in noise_type:
-                if args.experiment_id == 5:
-                    hyperparams['action_noise'] = OrnsteinUhlenbeckActionNoise(initial_noise=np.zeros(n_actions),
-                                                                               sigma=np.array([0.025, 0.00021, 0.025,
-                                                                                               0.00021]) * np.ones(
-                                                                                   n_actions),
-                                                                               theta=0.03, dt=1,
-                                                                               mean=np.array([0, 0.15, 0, 0.10]))
-                elif args.experiment_id == 10:
-                    hyperparams['action_noise'] = OrnsteinUhlenbeckActionNoise(initial_noise=np.zeros(n_actions),
-                                                                               sigma=np.array(
-                                                                                   [0.025, 0.00021, 0.025, 0.00021,
-                                                                                    0.025,
-                                                                                    0.00021]) * np.ones(
-                                                                                   n_actions),
-                                                                               theta=0.03, dt=1,
-                                                                               mean=np.array([0, 0.15, 0, 0.10, 0,
-                                                                                              0.07]))
-
-                elif args.experiment_id == 15:
-                    hyperparams['action_noise'] = OrnsteinUhlenbeckActionNoise(initial_noise=np.zeros(n_actions),
-                                                                               sigma=np.array(
-                                                                                   [0.025, 0.00021, 0.025, 0.00021,
-                                                                                    0.025,
-                                                                                    0.00021, 0.025,
-                                                                                    0.00021]) * np.ones(
-                                                                                   n_actions),
-                                                                               theta=0.03, dt=1,
-                                                                               mean=np.array([0., 0.15, 0, 0.10, 0,
-                                                                                              0.07, 0,
-                                                                                              0.02]))
-
-
-            #     hyperparams['action_noise'] = OrnsteinUhlenbeckActionNoise(mean=np.zeros(n_actions),
-            #                                                                sigma=noise_std * np.ones(n_actions))
+                hyperparams['action_noise'] = OrnsteinUhlenbeckActionNoise(initial_noise=np.zeros(n_actions),
+                                                                           sigma=hyperparams.get('noise_std',
+                                                                                                 0) * np.ones(
+                                                                               n_actions),
+                                                                           theta=hyperparams.get('theta', 0), dt=1,
+                                                                           mean=hyperparams.get('noise_mean', 0))
             else:
                 raise RuntimeError('Unknown noise type "{}"'.format(noise_type))
             print("Applying {} noise with std {}".format(noise_type, noise_std))
             del hyperparams['noise_type']
             del hyperparams['noise_std']
+            if 'theta' in hyperparams:
+                del hyperparams['theta']
+            if 'noise_mean' in hyperparams:
+                del hyperparams['noise_mean']
             if 'noise_std_final' in hyperparams:
                 del hyperparams['noise_std_final']
 
@@ -469,15 +439,15 @@ if __name__ == '__main__':
 
         # If render type is not none, we need to set ros flag to publish point clouds, else we don't need ros
         if args.render_type != '':
-            callback_visualizer = CallbackVisualizer(args.log_folder, ros_flag=True, exp_id=args.tol_exp_id)
+            callback_object = CallbackObject(args.log_folder, ros_flag=True, exp_id=args.goal_tolerance_exp_id)
         else:
-            callback_visualizer = CallbackVisualizer(args.log_folder, ros_flag=False, exp_id=args.tol_exp_id)
+            callback_object = CallbackObject(args.log_folder, ros_flag=False, exp_id=args.goal_tolerance_exp_id)
 
-        kwargs['callback'] = callback_visualizer.callback
+        kwargs['callback'] = callback_object.callback
 
         # Load an experiments .pkl network weights if needed
-        if not args.load_weights_from_experiment == '':
-            old_model = ALGOS[args.algo].load(args.load_weights_from_experiment, env=gym.make("Distal-2-Tube-Reach-v0"))
+        if not args.load_weights_from_file == '':
+            old_model = ALGOS[args.algo].load(args.load_weights_file, env=gym.make(args.load_weights_env))
             old_model_params = old_model.model.get_parameters()
             old_model_params = dict(
                 (key, value) for key, value in old_model_params.items() if ("model/" in key or "target/" in key))
