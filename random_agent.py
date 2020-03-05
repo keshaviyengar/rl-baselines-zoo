@@ -2,7 +2,7 @@ import gym
 import ctm2_envs
 import time
 
-env = gym.make("Distal-3-Tube-Reach-v0", ros_flag=True)
+env = gym.make("Distal-2-Tube-Reach-v0")
 observation = env.reset()
 for _ in range(1000):
     env.render()
