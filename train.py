@@ -446,7 +446,7 @@ if __name__ == '__main__':
         kwargs['callback'] = callback_object.callback
 
         # Load an experiments .pkl network weights if needed
-        if not args.load_weights_from_file == '':
+        if not args.load_weights_env == '':
             old_model = ALGOS[args.algo].load(args.load_weights_file, env=gym.make(args.load_weights_env))
             old_model_params = old_model.model.get_parameters()
             old_model_params = dict(
