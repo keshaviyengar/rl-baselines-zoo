@@ -193,8 +193,8 @@ if __name__ == '__main__':
             hyperparams['noise_std'] = 0.24
         elif args.noise_experiment_id == 10:
             print("three tube OU noise")
-            hyperparams['noise_mean'] = np.array([0, 0.15, 0, 0.10, 0, 0.07])
-            hyperparams['noise_std'] = np.array([0.025, 0.00065, 0.025, 0.00065, 0.025, 0.00065])
+            hyperparams['noise_mean'] = np.array([0.15, 0.10, 0.07, 0, 0, 0])
+            hyperparams['noise_std'] = np.array([0.00065, 0.00065, 0.00065, 0.025, 0.025, 0.025])
             hyperparams['noise_type'] = 'ornstein-uhlenbeck'
         elif args.noise_experiment_id == 11:
             print("four tube gaussian noise 0.35 std")
