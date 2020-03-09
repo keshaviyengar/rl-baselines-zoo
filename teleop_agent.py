@@ -70,7 +70,7 @@ class TeleopAgent(object):
         while not self.exit:
             self.action[0:self.num_tubes] = self.extension_actions
             self.action[self.num_tubes:] = self.rotation_actions
-            print('action: ', self.action)
+            # print('action: ', self.action)
             observation, reward, done, info = self.env.step(self.action)
             self.extension_actions = np.zeros(self.num_tubes)
             self.rotation_actions = np.zeros(self.num_tubes)

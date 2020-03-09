@@ -17,20 +17,16 @@ MM_TO_M = 1000
 # Publish training point cloud (reached cartesian point and associated error / q-value)
 # Publish a voxel grid of training locations
 class CallbackObject(object):
-    def __init__(self, log_folder, ros_flag, variable_goal_tolerance=True, exp_id=None):
+    def __init__(self, log_folder, ros_flag, goal_tolerance_function='constant', initial_goal_tolerance=0.001,
+                 final_goal_tolerance=0.001, tolerance_timesteps=1e6):
         self._locals = None
         self._globals = None
         self._log_folder = log_folder
         self._ros_flag = ros_flag
-        self._variable_goal_tolerance = variable_goal_tolerance
-        if exp_id == 1:
-            self.goal_tolerance_function = 'decay'
-        elif exp_id == 2:
-            self.goal_tolerance_function = 'linear'
-        elif exp_id == 3:
-            self.goal_tolerance_function = 'constant'
-        else:
-            print('Incorrect experiment id selected.')
+        self.goal_tolerance_function = goal_tolerance_function
+        self.initial_goal_tolerance = initial_goal_tolerance
+        self.final_goal_tolerance = final_goal_tolerance
+        self.tolerance_timesteps = tolerance_timesteps
         if self._ros_flag:
             import rospy
             import std_msgs.msg
@@ -54,20 +50,15 @@ class CallbackObject(object):
         self.local_step = 0
         self.save_pcd_model_intervals = [2.5e5, 5e5, 7.5e5, 1e6, 1.5e6, 199998]
 
-        if self._variable_goal_tolerance:
-            # Variable reward goal tolerance
-            self.final_goal_tol = 0.0001
-            self.initial_goal_tol = 0.050
-            self.n_timesteps = 1e6
-
-            if self.goal_tolerance_function == 'decay':
-                self.a = self.initial_goal_tol
-                self.r = 1 - np.power((self.final_goal_tol / self.initial_goal_tol), 1 / 2e6)
-            elif self.goal_tolerance_function == 'linear':
-                self.a = (self.final_goal_tol - self.initial_goal_tol) / self.n_timesteps
-                self.b = self.initial_goal_tol
-            else:
-                self.goal_tolerance_function = 'constant'
+        if self.goal_tolerance_function == 'decay':
+            self.a = self.initial_goal_tolerance
+            self.r = 1 - np.power((self.final_goal_tolerance / self.initial_goal_tolerance),
+                                  1 / self.tolerance_timesteps)
+        elif self.goal_tolerance_function == 'linear':
+            self.a = (self.final_goal_tolerance - self.initial_goal_tolerance) / self.tolerance_timesteps
+            self.b = self.initial_goal_tolerance
+        else:
+            self.goal_tolerance_function = 'constant'
 
     def callback(self, _locals, _globals):
         self._locals = _locals
@@ -84,8 +75,7 @@ class CallbackObject(object):
         self.current_step = _locals['total_steps'] - 1
         self.local_step += 1
 
-        if self._variable_goal_tolerance:
-            self._update_goal_tolerance()
+        self._update_goal_tolerance()
         if self.current_step in self.save_pcd_model_intervals and rank == 0:
             self.save_arrays()
             # self.save_point_clouds()
@@ -120,14 +110,16 @@ class CallbackObject(object):
         for val in q_val_values:
             q_rgb = pypcd.encode_rgb_for_pcl(self._value_to_int8_rgba(val, np.min(q_val_values), np.max(q_val_values)))
             q_rgb_values = np.append(q_rgb_values, q_rgb)
-            error_rgb = pypcd.encode_rgb_for_pcl(self._value_to_int8_rgba(val, np.min(error_values), np.max(error_values)))
+            error_rgb = pypcd.encode_rgb_for_pcl(
+                self._value_to_int8_rgba(val, np.min(error_values), np.max(error_values)))
             error_rgb_values = np.append(error_rgb_values, error_rgb)
 
         q_pcl_points[:, 3] = q_rgb_values
         error_pcl_points[:, 3] = error_rgb_values
 
         q_value_cloud = pypcd.make_xyz_rgb_point_cloud(q_pcl_points)
-        q_value_cloud.save_pcd(self._log_folder + "/q_value_" + str(self.current_step + 1) + ".pcd", compression='binary')
+        q_value_cloud.save_pcd(self._log_folder + "/q_value_" + str(self.current_step + 1) + ".pcd",
+                               compression='binary')
         error_cloud = pypcd.make_xyz_rgb_point_cloud(error_pcl_points)
         error_cloud.save_pcd(self._log_folder + "/error_" + str(self.current_step + 1) + ".pcd", compression='binary')
 
@@ -161,7 +153,7 @@ class CallbackObject(object):
         r = int(max(0, 255 * (ratio - 1)))
         g = 255 - b - r
         rgb = np.array([r, g, b], dtype=np.uint8)
-        #rgb = struct.unpack('I', struct.pack('BBBB', b, g, r, 255))[0]
+        # rgb = struct.unpack('I', struct.pack('BBBB', b, g, r, 255))[0]
         return np.reshape(rgb, [1, 3])
 
     def _update_goal_tolerance(self):
@@ -170,8 +162,8 @@ class CallbackObject(object):
         elif self.goal_tolerance_function == 'linear':
             goal_tol_new = self.a * self.current_step + self.b
         else:
-            goal_tol_new = self.final_goal_tol
+            goal_tol_new = self.final_goal_tolerance
 
-        if goal_tol_new < self.final_goal_tol:
-            goal_tol_new = self.final_goal_tol
+        if goal_tol_new < self.final_goal_tolerance:
+            goal_tol_new = self.final_goal_tolerance
         self._locals['self'].env.env.update_goal_tolerance(goal_tol_new)

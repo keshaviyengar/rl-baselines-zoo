@@ -48,12 +48,6 @@ if __name__ == '__main__':
     parser.add_argument('-tb', '--tensorboard-log', help='Tensorboard log dir', default='', type=str)
     parser.add_argument('-i', '--trained-agent', help='Path to a pretrained agent to continue training',
                         default='', type=str)
-    parser.add_argument('--load-weights-file',
-                        help='Load the policy weights and shared weights.',
-                        default='', type=str)
-    parser.add_argument('--load-weights-env',
-                        help='Specify the environment from which weights have been loaded.',
-                        default='', type=str)
     parser.add_argument('--algo', help='RL Algorithm', default='ppo2',
                         type=str, required=False, choices=list(ALGOS.keys()))
     parser.add_argument('-n', '--n-timesteps', help='Overwrite the number of timesteps', default=-1,
@@ -74,13 +68,20 @@ if __name__ == '__main__':
                         type=int)
     parser.add_argument('--gym-packages', type=str, nargs='+', default=[],
                         help='Additional external Gym environment package modules to import (e.g. gym_minigrid)')
+    parser.add_argument('--load-weights-file',
+                        help='Load the policy weights and shared weights from a file.',
+                        default='', type=str)
+    parser.add_argument('--load-weights-env',
+                        help='Choose the environment-id from which the weights file is loaded. Incorrect id will cause error.',
+                        default='', type=str)
     parser.add_argument('--render-type', help='Choose a rendering type during evaluation: empty, record or human',
                         default='', type=str)
     parser.add_argument('--noise-experiment-id',
                         help='Choose the experiment number. Refer to the excel sheet or comments in code.',
                         default=0, type=int)
-    parser.add_argument('--goal-tolerance-exp-id',
-                        help='Choose the experiment number for exact, curriculum experiments.1: exp decay, 2: linear, 3: constant',
+    parser.add_argument('--goal-tolerance-experiment-id',
+                        help='Choose the experiment number for exact,'
+                             'curriculum experiments.1: exp decay, 2: linear, 3: constant',
                         default=3, type=int)
     args = parser.parse_args()
 
@@ -192,6 +193,8 @@ if __name__ == '__main__':
             hyperparams['noise_std'] = 0.24
         elif args.noise_experiment_id == 10:
             print("three tube OU noise")
+            hyperparams['noise_mean'] = np.array([0, 0.15, 0, 0.10, 0, 0.07])
+            hyperparams['noise_std'] = np.array([0.025, 0.00065, 0.025, 0.00065, 0.025, 0.00065])
             hyperparams['noise_type'] = 'ornstein-uhlenbeck'
         elif args.noise_experiment_id == 11:
             print("four tube gaussian noise 0.35 std")
@@ -214,6 +217,30 @@ if __name__ == '__main__':
             hyperparams['noise_type'] = 'ornstein-uhlenbeck'
         else:
             print("Non experiment being used, incorrect selection.")
+
+        if args.goal_tolerance_experiment_id == 1:
+            goal_tolerance_function = 'linear'
+            initial_goal_tolerance = 0.020
+            final_goal_tolerance = 0.001
+            tolerance_timesteps = 1e6
+
+        elif args.goal_tolerance_experiment_id == 2:
+            goal_tolerance_function = 'decay'
+            initial_goal_tolerance = 0.020
+            final_goal_tolerance = 0.001
+            tolerance_timesteps = 1e6
+
+        else:
+            goal_tolerance_function = 'constant'
+            initial_goal_tolerance = 0.001
+            final_goal_tolerance = 0.001
+            # Should we overwrite the number of timesteps?
+            if args.n_timesteps > 0:
+                if args.verbose:
+                    print("Overwriting n_timesteps with n={}".format(args.n_timesteps))
+                tolerance_timesteps = args.n_timesteps
+            else:
+                tolerance_timesteps = int(hyperparams['n_timesteps'])
 
         # Sort hyperparams that will be saved
         saved_hyperparams = OrderedDict([(key, hyperparams[key]) for key in sorted(hyperparams.keys())])
@@ -335,7 +362,7 @@ if __name__ == '__main__':
             if args.render_type != '':
                 eval_env = HERGoalEnvWrapper(gym.make(env_id, ros_flag=True, render_type=args.render_type))
             else:
-                eval_env = HERGoalEnvWrapper(gym.make(env_id))
+                eval_env = HERGoalEnvWrapper(gym.make(env_id, ros_flag=False))
 
         # Stop env processes to free memory
         if args.optimize_hyperparameters and n_envs > 1:
@@ -439,9 +466,17 @@ if __name__ == '__main__':
 
         # If render type is not none, we need to set ros flag to publish point clouds, else we don't need ros
         if args.render_type != '':
-            callback_object = CallbackObject(args.log_folder, ros_flag=True, exp_id=args.goal_tolerance_exp_id)
+            callback_object = CallbackObject(args.log_folder, ros_flag=True,
+                                             goal_tolerance_function=goal_tolerance_function,
+                                             initial_goal_tolerance=initial_goal_tolerance,
+                                             final_goal_tolerance=initial_goal_tolerance,
+                                             tolerance_timesteps=tolerance_timesteps)
         else:
-            callback_object = CallbackObject(args.log_folder, ros_flag=False, exp_id=args.goal_tolerance_exp_id)
+            callback_object = CallbackObject(args.log_folder, ros_flag=False,
+                                             goal_tolerance_function=goal_tolerance_function,
+                                             initial_goal_tolerance=initial_goal_tolerance,
+                                             final_goal_tolerance=final_goal_tolerance,
+                                             tolerance_timesteps=tolerance_timesteps)
 
         kwargs['callback'] = callback_object.callback
 
