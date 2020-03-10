@@ -360,9 +360,11 @@ if __name__ == '__main__':
         eval_env = None
         if algo_ == 'ddpg':
             if args.render_type != '':
-                eval_env = HERGoalEnvWrapper(gym.make(env_id, ros_flag=True, render_type=args.render_type))
+                eval_env = HERGoalEnvWrapper(gym.make(env_id, ros_flag=True, render_type=args.render_type,
+                                                      goal_tolerance_function=goal_tolerance_function))
             else:
-                eval_env = HERGoalEnvWrapper(gym.make(env_id, ros_flag=False))
+                eval_env = HERGoalEnvWrapper(
+                    gym.make(env_id, ros_flag=False, goal_tolerance_function=goal_tolerance_function))
 
         # Stop env processes to free memory
         if args.optimize_hyperparameters and n_envs > 1:
