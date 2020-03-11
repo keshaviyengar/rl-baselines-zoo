@@ -17,8 +17,8 @@ MM_TO_M = 1000
 # Publish training point cloud (reached cartesian point and associated error / q-value)
 # Publish a voxel grid of training locations
 class CallbackObject(object):
-    def __init__(self, log_folder, ros_flag, goal_tolerance_function='constant', initial_goal_tolerance=0.001,
-                 final_goal_tolerance=0.001, tolerance_timesteps=1e6):
+    def __init__(self, log_folder, ros_flag, goal_tolerance_function='constant', initial_goal_tolerance=0.020,
+                 final_goal_tolerance=0.001, tolerance_timesteps=1.0e6):
         self._locals = None
         self._globals = None
         self._log_folder = log_folder
