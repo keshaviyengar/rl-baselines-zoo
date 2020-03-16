@@ -217,6 +217,8 @@ if __name__ == '__main__':
             hyperparams['noise_type'] = 'ornstein-uhlenbeck'
         else:
             print("Non experiment being used, incorrect selection.")
+            hyperparams['noise_type'] = 'normal'
+            hyperparams['noise_std'] = 0.0
 
         if args.goal_tolerance_experiment_id == 1:
             goal_tolerance_function = 'linear'
