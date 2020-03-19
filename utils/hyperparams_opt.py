@@ -68,7 +68,7 @@ def hyperparam_optimization(algo, model_fn, env_fn, n_trials=10, n_timesteps=500
 
     study = optuna.create_study(sampler=sampler, pruner=pruner)
     # algo_sampler = HYPERPARAMS_SAMPLER[algo]
-    algo_sampler = sample_two_tube_ou_params
+    algo_sampler = sample_three_tube_noise_params
 
     def objective(trial):
 
@@ -468,6 +468,16 @@ def sample_two_tube_noise_params(trial):
                                                         [noise_rotation_std, noise_extension_std, noise_rotation_std,
                                                          noise_extension_std]) * np.ones(
                                                         trial.n_actions))
+    return hyperparams
+
+
+def sample_three_tube_noise_params(trial):
+    hyperparams = {}
+    # change the noise types
+    # Set limits of search to action limits
+    parameter_noise_std = trial.suggest_uniform('noise_extension_std', 0, 1.0)
+    hyperparams['param_noise'] = AdaptiveParamNoiseSpec(initial_stddev=parameter_noise_std,
+                                                        desired_action_stddev=parameter_noise_std)
     return hyperparams
 
 

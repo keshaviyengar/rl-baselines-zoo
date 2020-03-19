@@ -82,7 +82,7 @@ if __name__ == '__main__':
     parser.add_argument('--goal-tolerance-experiment-id',
                         help='Choose the experiment number for exact,'
                              'curriculum experiments.1: exp decay, 2: linear, 3: constant',
-                        default=3, type=int)
+                        default=0, type=int)
     args = parser.parse_args()
 
     # Set log directory
