@@ -233,7 +233,7 @@ if __name__ == '__main__':
             tolerance_timesteps = 1e6
 
         elif args.goal_tolerance_experiment_id == 3:
-            goal_tolerance_function = 'gaussian'
+            goal_tolerance_function = 'chi'
             final_goal_tolerance = 0.0001
 
         else:
