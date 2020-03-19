@@ -57,6 +57,9 @@ class CallbackObject(object):
         elif self.goal_tolerance_function == 'linear':
             self.a = (self.final_goal_tolerance - self.initial_goal_tolerance) / self.tolerance_timesteps
             self.b = self.initial_goal_tolerance
+        elif self.goal_tolerance_function == 'gaussian':
+            self.mean = self.final_goal_tolerance
+            self.std = self.final_goal_tolerance * 5
         else:
             self.goal_tolerance_function = 'constant'
 
@@ -161,6 +164,9 @@ class CallbackObject(object):
             goal_tol_new = self.a * np.power(1 - self.r, self.current_step)
         elif self.goal_tolerance_function == 'linear':
             goal_tol_new = self.a * self.current_step + self.b
+        elif self.goal_tolerance_function == 'gaussian':
+            dof = 0.5
+            goal_tol_new = np.random.chisquare(dof)
         else:
             goal_tol_new = self.final_goal_tolerance
 

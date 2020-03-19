@@ -81,7 +81,7 @@ if __name__ == '__main__':
                         default=0, type=int)
     parser.add_argument('--goal-tolerance-experiment-id',
                         help='Choose the experiment number for exact,'
-                             'curriculum experiments.1: exp decay, 2: linear, 3: constant',
+                             'curriculum experiments. 1: exp decay, 2: linear, 3: chi-squared, 4: constant',
                         default=0, type=int)
     args = parser.parse_args()
 
@@ -231,6 +231,10 @@ if __name__ == '__main__':
             initial_goal_tolerance = 0.020
             final_goal_tolerance = 0.001
             tolerance_timesteps = 1e6
+
+        elif args.goal_tolerance_experiment_id == 3:
+            goal_tolerance_function = 'gaussian'
+            final_goal_tolerance = 0.0001
 
         else:
             goal_tolerance_function = 'constant'
