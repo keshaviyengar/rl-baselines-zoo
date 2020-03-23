@@ -181,7 +181,7 @@ def hyperparam_optimization(algo, model_fn, env_fn, n_trials=10, n_timesteps=500
         print('current cost: ', cost)
         print('current trial: ', trial.number)
         # Save the best trial periodically
-        if trial.number % 10 == 0:
+        if trial.number % 10 == 1:
             print('Best trial:')
             print('Value: ', study.best_trial.value)
             print('Params: ')
