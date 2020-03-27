@@ -196,7 +196,7 @@ if __name__ == '__main__':
             hyperparams['noise_type'] = 'ornstein-uhlenbeck'
             hyperparams['noise_std'] = [0.025, 0.00065, 0.025, 0.00065, 0.025, 0.00065]
             hyperparams['noise_std'] = [0.00065, 0.00065, 0.00065, 0.025, 0.025, 0.025]
-            hyperparams['theta']= 0.3
+            hyperparams['theta'] = 0.3
             hyperparams['noise_mean'] = [0.15, 0.10, 0.07, 0, 0, 0]
         elif args.noise_experiment_id == 11:
             print("four tube gaussian noise 0.35 std")
@@ -404,7 +404,9 @@ if __name__ == '__main__':
                                                                                                  0) * np.ones(
                                                                                n_actions),
                                                                            theta=hyperparams.get('theta', 0), dt=1,
-                                                                           mean=hyperparams.get('noise_mean', 0))
+                                                                           mean=hyperparams.get('noise_mean',
+                                                                                                0) * np.ones(
+                                                                               n_actions))
             else:
                 raise RuntimeError('Unknown noise type "{}"'.format(noise_type))
             print("Applying {} noise with std {}".format(noise_type, noise_std))
