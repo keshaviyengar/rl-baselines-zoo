@@ -194,7 +194,6 @@ if __name__ == '__main__':
         elif args.noise_experiment_id == 10:
             print("three tube OU noise")
             hyperparams['noise_type'] = 'ornstein-uhlenbeck'
-            hyperparams['noise_std'] = [0.025, 0.00065, 0.025, 0.00065, 0.025, 0.00065]
             hyperparams['noise_std'] = [0.00065, 0.00065, 0.00065, 0.025, 0.025, 0.025]
             hyperparams['theta'] = 0.3
             hyperparams['noise_mean'] = [0.15, 0.10, 0.07, 0, 0, 0]
