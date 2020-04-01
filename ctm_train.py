@@ -142,11 +142,11 @@ if __name__ == '__main__':
         elif args.noise_experiment_id == 2:
             print("two tube gaussian seperate noise 0.025, 0.00065 std")
             hyperparams['noise_type'] = 'normal'
-            hyperparams['noise_std'] = [0.025, 0.00065, 0.025, 0.00065]
+            hyperparams['noise_std'] = [0.00065, 0.00065, 0.025, 0.025]
         elif args.noise_experiment_id == 3:
             print("two tube varied gaussian noise 0.0009, 0.0004 std")
             hyperparams['noise_type'] = 'normal'
-            hyperparams['noise_std'] = [0.025, 0.0009, 0.025, 0.0004]
+            hyperparams['noise_std'] = [0.0009, 0.0004,  0.025, 0.025]
         elif args.noise_experiment_id == 4:
             print("two tube parameter noise 0.24 std")
             hyperparams['noise_type'] = 'adaptive-param'
@@ -154,6 +154,9 @@ if __name__ == '__main__':
         elif args.noise_experiment_id == 5:
             print("two tube OU noise")
             hyperparams['noise_type'] = 'ornstein-uhlenbeck'
+            hyperparams['noise_std'] = [0.00065, 0.00065, 0.025, 0.025]
+            hyperparams['theta'] = 0.3
+            hyperparams['noise_mean'] = [-0.001, -0.001, 0, 0]
         elif args.noise_experiment_id == 6:
             print("three tube gaussian noise 0.35 std")
             hyperparams['noise_type'] = 'normal'
@@ -340,12 +343,13 @@ if __name__ == '__main__':
             env.close()
 
         # Parse noise string for DDPG and SAC
-        if algo_ in ['her', 'ddpg', 'sac', 'td3'] and hyperparams.get('noise_type') is not None:
+        if algo_ in ['ddpg', 'sac', 'td3'] and hyperparams.get('noise_type') is not None:
             noise_type = hyperparams['noise_type'].strip()
             noise_std = hyperparams['noise_std']
             n_actions = env.action_space.shape[0]
             if 'adaptive-param' in noise_type:
-                assert algo_ == ['her', 'ddpg'], 'Parameter is not supported by SAC'
+                print("ALGO: ", algo_)
+                assert algo_ == 'ddpg', 'Parameter is not supported by SAC'
                 hyperparams['param_noise'] = AdaptiveParamNoiseSpec(initial_stddev=noise_std,
                                                                     desired_action_stddev=noise_std)
             elif 'normal' in noise_type:
