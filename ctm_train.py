@@ -168,7 +168,7 @@ if __name__ == '__main__':
         elif args.noise_experiment_id == 8:
             print("three tube varied gaussian noise 0.0009, 0.0009, 0.0004 std")
             hyperparams['noise_type'] = 'normal'
-            hyperparams['noise_std'] = [0.0009, 0.009, 0.0009, 0.025, 0.025, 0.025]
+            hyperparams['noise_std'] = [0.0009, 0.009, 0.0004, 0.025, 0.025, 0.025]
         elif args.noise_experiment_id == 9:
             print("three tube parameter noise 0.24 std")
             hyperparams['noise_type'] = 'adaptive-param'
