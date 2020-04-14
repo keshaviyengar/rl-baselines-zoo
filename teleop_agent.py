@@ -10,8 +10,8 @@ import numpy as np
 
 class TeleopAgent(object):
     def __init__(self):
-        self.env = gym.make('Distal-3-Tube-Reach-v0', ros_flag=True, render_type='human')
         self.num_tubes = 3
+        self.env = gym.make('Distal-' + str(self.num_tubes) + '-Tube-Reach-v1', ros_flag=True, render_type='human')
         self.key_listener = Listener(on_press=self.on_press_callback)
         self.key_listener.start()
 

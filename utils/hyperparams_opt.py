@@ -475,9 +475,26 @@ def sample_three_tube_noise_params(trial):
     hyperparams = {}
     # change the noise types
     # Set limits of search to action limits
-    parameter_noise_std = trial.suggest_uniform('noise_extension_std', 0, 1.0)
+    parameter_noise_std = trial.suggest_uniform('parameter_noise_std', 0, 1.0)
     hyperparams['param_noise'] = AdaptiveParamNoiseSpec(initial_stddev=parameter_noise_std,
                                                         desired_action_stddev=parameter_noise_std)
+    return hyperparams
+
+
+def sample_three_tube_varied_noise_params(trial):
+    hyperparams = {}
+    # change the noise types
+    ext_1_noise_std = trial.suggest_uniform('noise_extension_1_std', 0, 0.001)
+    ext_2_noise_std = trial.suggest_uniform('noise_extension_2_std', 0, 0.001)
+    ext_3_noise_std = trial.suggest_uniform('noise_extension_3_std', 0, 0.001)
+    rot_1_std = trial.suggest_uniform('noise_rotation_1_std', 0, np.deg2rad(5.0))
+    rot_2_std = trial.suggest_uniform('noise_rotation_2_std', 0, np.deg2rad(5.0))
+    rot_3_std = trial.suggest_uniform('noise_rotation_3_std', 0, np.deg2rad(5.0))
+
+    hyperparams['action_noise'] = NormalActionNoise(mean=np.zeros(trial.n_actions),
+                                                    sigma=np.array(ext_1_noise_std, ext_2_noise_std, ext_3_noise_std,
+                                                                   rot_1_std, rot_2_std, rot_3_std) * np.ones(
+                                                        trial.n_actions))
     return hyperparams
 
 
