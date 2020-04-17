@@ -7,11 +7,14 @@ import time
 
 import numpy as np
 
+import argparse
+
 
 class TeleopAgent(object):
     def __init__(self):
         self.num_tubes = 3
-        self.env = gym.make('Distal-' + str(self.num_tubes) + '-Tube-Reach-v1', ros_flag=True, render_type='human')
+        # self.env = gym.make('Distal-' + str(self.num_tubes) + '-Tube-Reach-v1', ros_flag=True, render_type='human')
+        self.env = gym.make('Exact-Ctr-' + str(self.num_tubes) + '-Tube-Reach-v0', ros_flag=True)
         self.key_listener = Listener(on_press=self.on_press_callback)
         self.key_listener.start()
 

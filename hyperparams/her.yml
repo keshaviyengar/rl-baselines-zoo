@@ -271,7 +271,7 @@ Distal-4-Tube-Reach-v0:
   render_eval: false
   policy_kwargs: "dict(layers=[128, 128, 128])"
 
-Exact-Ctr-v0:
+Exact-Ctr-3-Tube-Reach-v0:
   n_timesteps: !!float 2e6
   policy: 'MlpPolicy'
   model_class: 'ddpg'
