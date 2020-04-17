@@ -9,39 +9,41 @@ import pandas as pd
 class WorkspaceAgent(object):
     def __init__(self, num_tubes):
         self.num_tubes = num_tubes
+        if num_tubes == 1:
+            self.env = gym.make("Distal-1-Tube-Reach-v0", initial_q_pos=[1, 0, 0])
         if num_tubes == 2:
-            self.env = gym.make("Distal-2-Tube-Reach-v0")
+            self.env = gym.make("Distal-2-Tube-Reach-v0", initial_q_pos=[1, 0, 0, 1, 0, 0])
         if num_tubes == 3:
-            self.env = gym.make("Distal-3-Tube-Reach-v0")
+            self.env = gym.make("Distal-3-Tube-Reach-v1", initial_q_pos=[1, 0, 0, 1, 0, 0, 1, 0, 0])
         if num_tubes == 4:
             self.env = gym.make("Distal-4-Tube-Reach-v0")
         self.env.reset()
-        self.rotate_action = np.deg2rad(2)
+        self.rotate_action = np.deg2rad(10)
         self.extension_action = 0.0001
 
     # Rotate a tube given a tube id (inner most is first)
     def rotate_tube(self, tube):
         action = np.zeros_like(self.env.action_space.low)
         if tube == 0:
-            action[0] = self.rotate_action
+            action[self.num_tubes] = self.rotate_action
         if tube == 1:
-            action[2] = self.rotate_action
+            action[self.num_tubes] = self.rotate_action
         if tube == 2:
-            action[4] = self.rotate_action
+            action[self.num_tubes] = self.rotate_action
         if tube == 3:
-            action[6] = self.rotate_action
+            action[self.num_tubes] = self.rotate_action
         return action
 
     def extend_tube(self, tube, retract=False):
         action = np.zeros_like(self.env.action_space.low)
         if tube == 0:
-            action[1] = self.extension_action
+            action[0] = self.extension_action
         if tube == 1:
-            action[3] = self.extension_action
+            action[1] = self.extension_action
         if tube == 2:
-            action[5] = self.extension_action
+            action[2] = self.extension_action
         if tube == 3:
-            action[7] = self.extension_action
+            action[3] = self.extension_action
         if retract:
             action = -1 * action
         return action
@@ -52,19 +54,19 @@ class WorkspaceAgent(object):
 
     def get_two_tube_workspace(self):
         # Tube 1 extension and rotation iterators
-        ext_1_itr = int(self.env.tube_length[1] / self.extension_action)
+        ext_1_itr = int(self.env.tube_lengths[1] / self.extension_action)
         rot_1_itr = int(np.pi / self.rotate_action)
 
         # Tube 0 extension and rotation iterators
-        ext_0_itr = int(self.env.tube_length[0] / self.extension_action)
-        rot_0_itr = int(np.pi / self.rotate_action * 0.5)
+        ext_0_itr = int(self.env.tube_lengths[0] / self.extension_action)
+        rot_0_itr = int(np.pi / self.rotate_action)
 
         # tube 0 points
-        tube_0_points = np.empty([ext_0_itr * ext_0_itr, 3])
+        tube_0_points = np.zeros([ext_0_itr * ext_0_itr, 3])
         tube_0_count = 0
 
         # tube 1 points
-        tube_1_points = np.empty([ext_0_itr, 3])
+        tube_1_points = np.zeros([ext_0_itr, 3])
         tube_1_count = 0
 
         # Retract tube 0
@@ -96,16 +98,16 @@ class WorkspaceAgent(object):
 
     def get_three_tube_workspace(self):
         # Tube 2 extension and rotation iterators
-        ext_2_itr = int(self.env.tube_length[2] / self.extension_action)
-        rot_2_itr = int(np.pi / self.rotate_action * 0.5)
+        ext_2_itr = int(self.env.tube_lengths[2] / self.extension_action)
+        rot_2_itr = int(np.pi / self.rotate_action)
 
         # Tube 1 extension and rotation iterators
-        ext_1_itr = int(self.env.tube_length[1] / self.extension_action)
-        rot_1_itr = int(np.pi / self.rotate_action * 0.5)
+        ext_1_itr = int(self.env.tube_lengths[1] / self.extension_action)
+        rot_1_itr = int(np.pi / self.rotate_action)
 
         # Tube 0 extension and rotation iterators
-        ext_0_itr = int(self.env.tube_length[0] / self.extension_action)
-        rot_0_itr = int(np.pi / self.rotate_action * 0.5)
+        ext_0_itr = int(self.env.tube_lengths[0] / self.extension_action)
+        rot_0_itr = int(np.pi / self.rotate_action)
 
         # tube 0 points
         tube_0_points = np.empty([4 * ext_0_itr, 3])
@@ -371,7 +373,7 @@ class WorkspaceAgent(object):
 if __name__ == '__main__':
     import matplotlib.pyplot as plt
     plt.rcParams.update({'font.size': 18})
-    num_tubes = 4
+    num_tubes = 3
     agent = WorkspaceAgent(num_tubes=num_tubes)
     if num_tubes == 2:
         tube_0_points, tube_1_points = agent.get_two_tube_workspace()
