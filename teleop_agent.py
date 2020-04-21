@@ -11,10 +11,10 @@ import argparse
 
 
 class TeleopAgent(object):
-    def __init__(self):
-        self.num_tubes = 3
-        # self.env = gym.make('Distal-' + str(self.num_tubes) + '-Tube-Reach-v1', ros_flag=True, render_type='human')
-        self.env = gym.make('Exact-Ctr-' + str(self.num_tubes) + '-Tube-Reach-v0', ros_flag=True)
+    def __init__(self, env_id, ros_flag):
+        self.env = gym.make(env_id, ros_flag=ros_flag, render_type='human')
+        self.num_tubes = self.env.num_tubes
+
         self.key_listener = Listener(on_press=self.on_press_callback)
         self.key_listener.start()
 
@@ -86,5 +86,10 @@ class TeleopAgent(object):
 
 
 if __name__ == '__main__':
-    teleop_agent = TeleopAgent()
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--env', type=str, default="Distal-2-Tube-Reach-v0")
+    parser.add_argument('--ros-flag', type=bool, default=True)
+
+    args = parser.parse_args()
+    teleop_agent = TeleopAgent(args.env, args.ros_flag)
     teleop_agent.run()

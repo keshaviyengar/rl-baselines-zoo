@@ -1,15 +1,23 @@
+import argparse
 import gym
 import ctm2_envs
 import time
 
-env = gym.make("Distal-2-Tube-Reach-v0")
-observation = env.reset()
-for _ in range(1000):
-    env.render()
-    time.sleep(0.10)
-    action = env.action_space.sample()  # your agent here (this takes random actions)
-    observation, reward, done, info = env.step(action)
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--env', type=str, default="Distal-2-Tube-Reach-v0")
+    parser.add_argument('--render-type', type=str, default="human")
+    parser.add_argument('--ros-flag', type=bool, default=True)
 
-    if done:
-        observation = env.reset()
-env.close()
+    args = parser.parse_args()
+
+    env = gym.make(args.env, render_type=args.render_type, ros_flag=args.ros_flag)
+    observation = env.reset()
+    for _ in range(1000):
+        env.render()
+        time.sleep(0.10)
+        action = env.action_space.sample()  # your agent here (this takes random actions)
+        observation, reward, done, info = env.step(action)
+        if done:
+            observation = env.reset()
+    env.close()
