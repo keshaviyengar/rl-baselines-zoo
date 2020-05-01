@@ -33,6 +33,8 @@ from utils.ctm_callback import CtmCallback
 
 from stable_baselines.logger import configure
 
+# TODO: Move experiment arguements to yaml, rather than it being here.
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--env', type=str, nargs='+', default=["CartPole-v1"], help='environment ID(s)')
