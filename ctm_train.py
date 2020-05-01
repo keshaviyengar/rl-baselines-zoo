@@ -443,21 +443,7 @@ if __name__ == '__main__':
         if args.log_interval > -1:
             kwargs['log_interval'] = args.log_interval
 
-        # If render type is not none, we need to set ros flag to publish point clouds, else we don't need ros
-        if args.render_type != '':
-            callback_object = CallbackObject(args.log_folder, ros_flag=True,
-                                             goal_tolerance_function=goal_tolerance_function,
-                                             initial_goal_tolerance=initial_goal_tolerance,
-                                             final_goal_tolerance=initial_goal_tolerance,
-                                             tolerance_timesteps=tolerance_timesteps)
-        else:
-            callback_object = CallbackObject(args.log_folder, ros_flag=False,
-                                             goal_tolerance_function=goal_tolerance_function,
-                                             initial_goal_tolerance=initial_goal_tolerance,
-                                             final_goal_tolerance=final_goal_tolerance,
-                                             tolerance_timesteps=tolerance_timesteps)
-            callback_object = CtmCallback(args.log_folder, args.n_timesteps, None)
-
+        callback_object = CtmCallback(args.log_folder, args.n_timesteps, None)
         kwargs['callback'] = callback_object.callback
 
         # Load an experiments .pkl network weights if needed
@@ -468,25 +454,24 @@ if __name__ == '__main__':
                 (key, value) for key, value in old_model_params.items() if ("model/" in key or "target/" in key))
             model.model.load_parameters(old_model_params, exact_match=False)
 
-        model.learn(n_timesteps, **kwargs)
-
-        # Save trained model
+        # Set saving paths before training and save the hyperparameters
         log_path = "{}/{}/".format(args.log_folder, args.algo)
         print('log path: ', log_path)
         save_path = os.path.join(log_path, "{}_{}".format(env_id, get_latest_run_id(log_path, env_id) + 1))
         print('save path: ', save_path)
         os.makedirs(save_path, exist_ok=True)
+        if rank == 0:
+            # Save hyperparams
+            with open(os.path.join(save_path, 'config.yml'), 'w') as f:
+                yaml.dump(saved_hyperparams, f)
+
+        model.learn(n_timesteps, **kwargs)
 
         # Only save worker of rank 0 when using mpi
         print('rank: ', rank)
         if rank == 0:
             print("Saving to {}".format(save_path))
-
             model.save("{}/{}".format(save_path, env_id))
-            # Save hyperparams
-            with open(os.path.join(save_path, 'config.yml'), 'w') as f:
-                yaml.dump(saved_hyperparams, f)
-
             if normalize:
                 # Unwrap
                 if isinstance(env, VecFrameStack):
