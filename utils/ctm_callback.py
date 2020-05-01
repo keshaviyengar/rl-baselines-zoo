@@ -13,9 +13,9 @@ class CtmCallback(object):
         self.num_workers = MPI.COMM_WORLD.Get_size()
         self.goal_tolerance_parameters = goal_tolerance_parameters
 
-        self.ag_points = np.empty([int(n_timesteps / 4) * self.num_workers, 3], dtype=float)
-        self.errors = np.empty(int(n_timesteps / 4) * self.num_workers, dtype=float)
-        self.q_values = np.empty(int(n_timesteps / 4) * self.num_workers, dtype=float)
+        self.ag_points = np.zeros([int(n_timesteps / 4) * self.num_workers, 3], dtype=float)
+        self.errors = np.zeros(int(n_timesteps / 4) * self.num_workers, dtype=float)
+        self.q_values = np.zeros(int(n_timesteps / 4) * self.num_workers, dtype=float)
 
         self.training_step = 0
         self.save_step = 0
@@ -34,8 +34,8 @@ class CtmCallback(object):
         # update goal tolerance if needed
         if self.training_step in self.save_intervals and rank == 0:
             self.save_np_arrays()
-            self.clear_np_arrays()
             self.save_point_cloud()
+            self.clear_np_arrays()
             self.save_step = 0
             # Save model at intervals
             _locals['self'].save(self.log_folder + '/' + str(self.training_step) + '_saved_model.pkl')
@@ -48,14 +48,18 @@ class CtmCallback(object):
         hf.close()
 
     def clear_np_arrays(self):
-        self.ag_points = np.empty([int(self.n_timesteps / 4) * self.num_workers, 3], dtype=float)
-        self.errors = np.empty(int(self.n_timesteps / 4) * self.num_workers, dtype=float)
-        self.q_values = np.empty(int(self.n_timesteps / 4) * self.num_workers, dtype=float)
+        self.ag_points = np.zeros([int(self.n_timesteps / 4) * self.num_workers, 3], dtype=float)
+        self.errors = np.zeros(int(self.n_timesteps / 4) * self.num_workers, dtype=float)
+        self.q_values = np.zeros(int(self.n_timesteps / 4) * self.num_workers, dtype=float)
 
     def save_point_cloud(self):
         ag_points = self.ag_points[:self.save_step, :]
         error_values = self.errors[:self.save_step]
         q_val_values = self.q_values[:self.save_step]
+
+        assert not np.isnan(ag_points).any()
+        assert not np.isnan(q_val_values).any()
+        assert not np.isnan(error_values).any()
 
         q_pcl_points = np.ndarray((ag_points.shape[0], 4), dtype=np.float32)
         error_pcl_points = np.ndarray((ag_points.shape[0], 4), dtype=np.float32)
