@@ -29,6 +29,7 @@ from stable_baselines.her.utils import HERGoalEnvWrapper
 import ctm2_envs
 import ctr_envs
 from utils.callback_object import CallbackObject
+from utils.ctm_callback import CtmCallback
 
 from stable_baselines.logger import configure
 
@@ -454,6 +455,7 @@ if __name__ == '__main__':
                                              initial_goal_tolerance=initial_goal_tolerance,
                                              final_goal_tolerance=final_goal_tolerance,
                                              tolerance_timesteps=tolerance_timesteps)
+            callback_object = CtmCallback(args.log_folder, args.n_timesteps, None)
 
         kwargs['callback'] = callback_object.callback
 
