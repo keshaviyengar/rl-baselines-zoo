@@ -445,7 +445,7 @@ if __name__ == '__main__':
         if args.log_interval > -1:
             kwargs['log_interval'] = args.log_interval
 
-        callback_object = CtmCallback(args.log_folder, args.n_timesteps, None)
+        callback_object = CtmCallback(args.log_folder, n_timesteps, None)
         kwargs['callback'] = callback_object.callback
 
         # Load an experiments .pkl network weights if needed
