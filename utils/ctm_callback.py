@@ -28,9 +28,6 @@ class CtmCallback(object):
 
     def callback(self, _locals, _globals):
         observation = _locals['self'].env.convert_obs_to_dict(_locals['new_obs'])
-        print("saving intervals: ", self.save_intervals)
-        print("save_step: ", self.save_step)
-        print("training_step: ", self.training_step)
         self.ag_points[self.save_step, :] = observation['achieved_goal'] * 1000
         self.errors[self.save_step] = _locals['info']['error'] * 1000
         self.q_values[self.save_step] = _locals['q_value']
