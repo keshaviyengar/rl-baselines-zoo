@@ -79,9 +79,8 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     # Set log directory
-    os.environ["OPENAI_LOG_FORMAT"] = 'stdout,log,csv'
-    os.environ["OPENAI_LOGDIR"] = args.tensorboard_log
-    configure()
+    # os.environ["OPENAI_LOG_FORMAT"] = 'stdout,log,csv'
+    # configure()
 
     env_ids = args.env
     registered_envs = set(gym.envs.registry.env_specs.keys())
@@ -457,14 +456,14 @@ if __name__ == '__main__':
             model.model.load_parameters(old_model_params, exact_match=False)
 
         # Set saving paths before training and save the hyperparameters
-        log_path = "{}/{}/".format(args.log_folder, args.algo)
+        log_path = "{}/".format(args.log_folder)
         print('log path: ', log_path)
         save_path = os.path.join(log_path, "{}_{}".format(env_id, get_latest_run_id(log_path, env_id) + 1))
         print('save path: ', save_path)
-        os.makedirs(save_path, exist_ok=True)
         if rank == 0:
+            # os.makedirs(save_path, exist_ok=True)
             # Save hyperparams
-            with open(os.path.join(save_path, 'config.yml'), 'w') as f:
+            with open(os.path.join(log_path, 'config.yml'), 'w') as f:
                 yaml.dump(saved_hyperparams, f)
 
         model.learn(n_timesteps, **kwargs)
@@ -472,11 +471,5 @@ if __name__ == '__main__':
         # Only save worker of rank 0 when using mpi
         print('rank: ', rank)
         if rank == 0:
-            print("Saving to {}".format(save_path))
-            model.save("{}/{}".format(save_path, env_id))
-            if normalize:
-                # Unwrap
-                if isinstance(env, VecFrameStack):
-                    env = env.venv
-                # Important: save the running average, for testing the agent we need that normalization
-                env.save_running_average(save_path)
+            print("Saving to {}".format(log_path))
+            model.save("{}/{}".format(log_path, env_id))

@@ -1,3 +1,4 @@
+import os
 import numpy as np
 
 from pypcd import pypcd
@@ -21,8 +22,15 @@ class CtmCallback(object):
         self.save_step = 0
         self.save_intervals = np.arange(0, n_timesteps + 1, int(n_timesteps / 4))  # arange stop is excluding
 
+        os.makedirs(log_folder + '/learned_policy', exist_ok=True)
+        os.makedirs(log_folder + '/saved_data', exist_ok=True)
+        os.makedirs(log_folder + '/point_clouds', exist_ok=True)
+
     def callback(self, _locals, _globals):
         observation = _locals['self'].env.convert_obs_to_dict(_locals['new_obs'])
+        print("saving intervals: ", self.save_intervals)
+        print("save_step: ", self.save_step)
+        print("training_step: ", self.training_step)
         self.ag_points[self.save_step, :] = observation['achieved_goal'] * 1000
         self.errors[self.save_step] = _locals['info']['error'] * 1000
         self.q_values[self.save_step] = _locals['q_value']
@@ -32,16 +40,17 @@ class CtmCallback(object):
         self.save_step += 1
 
         # update goal tolerance if needed
-        if self.training_step in self.save_intervals and rank == 0:
-            self.save_np_arrays()
-            self.save_point_cloud()
-            self.clear_np_arrays()
+        if self.training_step in self.save_intervals:
+            if rank == 0:
+                self.save_np_arrays()
+                self.save_point_cloud()
+                self.clear_np_arrays()
+                # Save model at intervals
+                _locals['self'].save(self.log_folder + '/learned_policy/' + str(self.training_step) + '_saved_model.pkl')
             self.save_step = 0
-            # Save model at intervals
-            _locals['self'].save(self.log_folder + '/' + str(self.training_step) + '_saved_model.pkl')
 
     def save_np_arrays(self):
-        hf = h5py.File(self.log_folder + '/' + 'data_' + str(self.training_step) + '.h5', 'w')
+        hf = h5py.File(self.log_folder + '/saved_data/' + 'data_' + str(self.training_step) + '.h5', 'w')
         hf.create_dataset('achieved_goals', data=self.ag_points[:self.save_step, :])
         hf.create_dataset('errors', data=self.errors[:self.save_step])
         hf.create_dataset('q_values', data=self.q_values[:self.save_step])
@@ -72,10 +81,10 @@ class CtmCallback(object):
         q_pcl_points[:, -1] = q_val_rgb
 
         q_value_cloud = pypcd.make_xyz_rgb_point_cloud(q_pcl_points)
-        q_value_cloud.save_pcd(self.log_folder + "/q_value_" + str(self.training_step) + ".pcd",
+        q_value_cloud.save_pcd(self.log_folder + "/point_clouds" + "/q_value_" + str(self.training_step) + ".pcd",
                                compression='binary')
         error_cloud = pypcd.make_xyz_rgb_point_cloud(error_pcl_points)
-        error_cloud.save_pcd(self.log_folder + "/error_" + str(self.training_step) + ".pcd", compression='binary')
+        error_cloud.save_pcd(self.log_folder + "/point_clouds" + "/error_" + str(self.training_step) + ".pcd", compression='binary')
 
     @staticmethod
     # Input: Vector of scalar values.
