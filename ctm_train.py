@@ -79,8 +79,9 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     # Set log directory
-    # os.environ["OPENAI_LOG_FORMAT"] = 'stdout,log,csv'
-    # configure()
+    os.environ["OPENAI_LOG_FORMAT"] = 'stdout,log,csv'
+    os.environ["OPENAI_LOGDIR"] = args.log_folder
+    configure()
 
     env_ids = args.env
     registered_envs = set(gym.envs.registry.env_specs.keys())

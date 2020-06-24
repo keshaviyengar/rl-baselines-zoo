@@ -4,21 +4,26 @@ import ctm2_envs
 import ctr_envs
 import time
 
+import numpy as np
+import matplotlib.pyplot as plt
+
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--env', type=str, default="Exact-Ctr-3-Tube-Reach-v0")
-    parser.add_argument('--render-type', type=str, default="human")
-    parser.add_argument('--ros-flag', type=bool, default=True)
+    parser.add_argument('--env', type=str, default="Distal-2-Tube-Reach-v0")
+    parser.add_argument('--render-type', type=str, default="")
+    parser.add_argument('--ros-flag', type=bool, default=False)
 
     args = parser.parse_args()
 
+    num_points = 1e5
     env = gym.make(args.env, ros_flag=args.ros_flag, render_type=args.render_type)
-    observation = env.reset()
-    for _ in range(1000):
-        env.render()
-        time.sleep(0.10)
-        action = env.action_space.sample()  # your agent here (this takes random actions)
-        observation, reward, done, info = env.step(action)
-        if done:
-            observation = env.reset()
+    dg_list = np.empty((3, int(num_points)))
+    for i in range(int(num_points)):
+        print(i)
+        desired_goal = env.reset()['desired_goal']
+        dg_list[:,i] = desired_goal
+
     env.close()
+    plt.plot(dg_list[0,:], dg_list[2,:], 'o')
+    plt.show()
