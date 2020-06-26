@@ -336,7 +336,7 @@ Exact-Ctr-3-Tube-Reach-v0:
   noise_std: 0.0
   normalize_observations: true
   normalize_returns: true
-  nb_eval_steps: 150
+  nb_eval_steps: 200
   render: false
   render_eval: false
   policy_kwargs: "dict(layers=[128, 128, 128])"
