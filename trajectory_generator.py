@@ -211,20 +211,19 @@ class SquareTrajectory2(object):
 
 if __name__ == '__main__':
     rospy.init_node("trajectory_generator")
-    # experiments = [1, 2, 4, 5, 6, 7, 9, 10, 11, 12, 14, 15]
-    experiments = [1, 9]
+    experiments = [7]
 
     for exp in experiments:
-        x_offset = -5
-        y_offset = -5
+        x_offset = 5
+        y_offset = 5
         if exp in [1, 2, 3, 4, 5]:
             z_height = 100
         elif exp in [6, 7, 8, 9, 10]:
-            z_height = 125
+            z_height = 100
         else:
             z_height = 125
 
-        radius = 2.5
+        radius = 2.0
         theta_step = 0.5
         print("Circle trajectory")
         circle_trajectory = CircleTrajectory(x_offset, y_offset, z_height, radius, theta_step)

@@ -1,5 +1,6 @@
 import gym
 import ctm2_envs
+import ctr_envs
 
 import time
 import os
@@ -27,27 +28,28 @@ import signal
 
 
 class Ctm2Inference(object):
-    def __init__(self, experiment_id, shape, episode_timesteps, goal_tolerance):
-        env_id = None
+    def __init__(self, experiment_id, shape, episode_timesteps, goal_tolerance, env_id=None, model_path=None):
         self.shape = shape
         self.exp_id = experiment_id
-        if experiment_id in [1, 2, 3, 4, 5]:
-            env_id = "Distal-2-Tube-Reach-v0"
-        if experiment_id in [6, 7, 8, 9, 10]:
-            env_id = "Distal-3-Tube-Reach-v0"
-        if experiment_id in [11, 12, 13, 14, 15]:
-            env_id = "Distal-4-Tube-Reach-v0"
+
+        if env_id is None:
+            if experiment_id in [1, 2, 3, 4, 5]:
+                env_id = "Distal-2-Tube-Reach-v0"
+            if experiment_id in [6, 7, 8, 9, 10]:
+                env_id = "Distal-3-Tube-Reach-v0"
+            if experiment_id in [11, 12, 13, 14, 15]:
+                env_id = "Distal-4-Tube-Reach-v0"
 
         self.save = False
-
         self.episode_timesteps = episode_timesteps
 
         self.env = HERGoalEnvWrapper(
             gym.make(env_id, goal_tolerance=goal_tolerance, ros_flag=True, render_type='human'))
         seed = np.random.randint(0, 10)
 
-        model_path = "/home/keshav/ctm2-stable-baselines/saved_results/" + "exp_" + str(
-            experiment_id) + "/" + env_id + ".pkl"
+        if model_path is None:
+            model_path = "/home/keshav/ctm2-stable-baselines/saved_results/" + "exp_" + str(
+                experiment_id) + "/" + env_id + ".pkl"
         self.model = HER.load(model_path, env=self.env)
 
         set_global_seeds(seed)
@@ -113,7 +115,7 @@ class Ctm2Inference(object):
                 self.df['desired_goal_z'] = self.desired_goals_z
                 self.df['errors'] = self.errors
                 self.df["time_taken"] = self.time_taken
-                self.df.to_csv('~/ctm2-stable-baselines/saved_results/temp_exps/' + 'exp_' + str(
+                self.df.to_csv('~/ctm2-stable-baselines/saved_results/cras_2020/' + 'exp_' + str(
                     self.exp_id) + '_' + self.shape + '_traj.csv')
             except:
                 print("Experiment " + str(self.exp_id) + " failed.")
@@ -152,18 +154,27 @@ class Ctm2Inference(object):
 
 if __name__ == '__main__':
     # experiments = [1, 2, 4, 5, 6, 7, 9, 10, 11, 12, 14, 15]
-    experiments = [1, 9]
+    env_id = "Exact-Ctr-3-Tube-Reach-v0"
+    model_path = "/home/keshav/ctm2-stable-baselines/saved_results/cras_2020/cras_0/learned_policy/300000_saved_model.pkl"
     episode_timesteps = 150
 
-    for experiment_id in experiments:
-        circle_inferencer = Ctm2Inference(experiment_id=experiment_id, shape='circle',
-                                          episode_timesteps=episode_timesteps,
-                                          goal_tolerance=0.001)
+    circle_inferencer = Ctm2Inference(experiment_id=0, shape='circle',
+                                      episode_timesteps=episode_timesteps,
+                                      goal_tolerance=0.001, env_id=env_id, model_path=model_path)
 
-        while not circle_inferencer.save:
-            circle_inferencer.infer_to_goal()
-            if rospy.is_shutdown() or circle_inferencer.save:
-                break
+    while not circle_inferencer.save:
+        circle_inferencer.infer_to_goal()
+        if rospy.is_shutdown() or circle_inferencer.save:
+            break
+    # for experiment_id in experiments:
+    #     circle_inferencer = Ctm2Inference(experiment_id=experiment_id, shape='circle',
+    #                                       episode_timesteps=episode_timesteps,
+    #                                       goal_tolerance=0.001)
+
+    #     while not circle_inferencer.save:
+    #         circle_inferencer.infer_to_goal()
+    #         if rospy.is_shutdown() or circle_inferencer.save:
+    #             break
 
         # triangle_inferencer = Ctm2Inference(experiment_id=experiment_id, shape='triangle',
         #                                     episode_timesteps=episode_timesteps,

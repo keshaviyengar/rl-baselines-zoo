@@ -211,13 +211,14 @@ if __name__ == '__main__':
             goal_tolerance_function = 'linear'
             initial_goal_tolerance = 0.020
             final_goal_tolerance = 0.001
-            tolerance_timesteps = 1e6
+            tolerance_timesteps = args.n_timesteps / 2
 
         elif args.goal_tolerance_experiment_id == 2:
             goal_tolerance_function = 'decay'
             initial_goal_tolerance = 0.020
             final_goal_tolerance = 0.001
-            tolerance_timesteps = 1e6
+            tolerance_timesteps = args.n_timesteps / 2
+
 
         elif args.goal_tolerance_experiment_id == 3:
             goal_tolerance_function = 'chi'
