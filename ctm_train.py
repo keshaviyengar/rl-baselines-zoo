@@ -219,7 +219,6 @@ if __name__ == '__main__':
             final_goal_tolerance = 0.001
             tolerance_timesteps = args.n_timesteps / 2
 
-
         elif args.goal_tolerance_experiment_id == 3:
             goal_tolerance_function = 'chi'
             final_goal_tolerance = 0.0001
