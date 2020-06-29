@@ -14,6 +14,22 @@ class CtmCallback(object):
         self.num_workers = MPI.COMM_WORLD.Get_size()
         self.goal_tolerance_parameters = goal_tolerance_parameters
 
+        initial_goal_tolerance = self.goal_tolerance_parameters['initial_goal_tolerance']
+        final_goal_tolerance = self.goal_tolerance_parameters['final_goal_tolerance']
+        goal_tolerance_function = self.goal_tolerance_parameters['goal_tolerance_function']
+        goal_tolerance_timesteps = self.goal_tolerance_parameters['goal_tolerance_timesteps']
+        if goal_tolerance_function == 'decay':
+            self.a = initial_goal_tolerance
+            self.r = 1 - np.power((final_goal_tolerance / initial_goal_tolerance),
+                                  1 / goal_tolerance_timesteps)
+        elif goal_tolerance_function == 'linear':
+            self.a = (final_goal_tolerance - initial_goal_tolerance) / goal_tolerance_timesteps
+            self.b = initial_goal_tolerance
+        elif goal_tolerance_function == 'chi':
+            dof = 0.5
+        else:
+            goal_tolerance_function = 'constant'
+
         self.ag_points = np.zeros([int(n_timesteps / 4) * self.num_workers, 3], dtype=float)
         self.errors = np.zeros(int(n_timesteps / 4) * self.num_workers, dtype=float)
         self.q_values = np.zeros(int(n_timesteps / 4) * self.num_workers, dtype=float)
@@ -37,6 +53,8 @@ class CtmCallback(object):
         self.save_step += 1
 
         # update goal tolerance if needed
+        goal_tol_new = self.update_goal_tolerance()
+        _locals['self'].env.env.update_goal_tolerance(goal_tol_new)
         if self.training_step in self.save_intervals:
             if rank == 0:
                 self.save_np_arrays()
@@ -83,6 +101,25 @@ class CtmCallback(object):
         error_cloud = pypcd.make_xyz_rgb_point_cloud(error_pcl_points)
         error_cloud.save_pcd(self.log_folder + "/point_clouds" + "/error_" + str(self.training_step) + ".pcd", compression='binary')
 
+    def update_goal_tolerance(self):
+        initial_goal_tolerance = self.goal_tolerance_parameters['initial_goal_tolerance']
+        final_goal_tolerance = self.goal_tolerance_parameters['final_goal_tolerance']
+        goal_tolerance_function = self.goal_tolerance_parameters['goal_tolerance_function']
+        goal_tolerance_steps = self.goal_tolerance_parameters['goal_tolerance_timesteps']
+
+        if goal_tolerance_function == 'decay':
+            goal_tol_new = self.a * np.power(1 - self.r, self.training_step)
+        elif goal_tolerance_function == 'linear':
+            goal_tol_new = self.a * self.training_step + self.b
+        elif goal_tolerance_function == 'chi':
+            goal_tol_new = np.random.chisquare(self.dof)
+        else:
+            goal_tol_new = final_goal_tolerance
+
+        if goal_tol_new < final_goal_tolerance:
+            goal_tol_new = final_goal_tolerance
+        return goal_tol_new
+
     @staticmethod
     # Input: Vector of scalar values.
     # Output: ndarray of rgb value (int8) per scalar value
@@ -108,4 +145,3 @@ class CtmCallback(object):
         rgb = np.array([r, g, b], dtype=np.uint8)
         # rgb = struct.unpack('I', struct.pack('BBBB', b, g, r, 255))[0]
         return np.reshape(rgb, [1, 3])
-

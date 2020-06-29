@@ -211,13 +211,19 @@ if __name__ == '__main__':
             goal_tolerance_function = 'linear'
             initial_goal_tolerance = 0.020
             final_goal_tolerance = 0.001
-            tolerance_timesteps = args.n_timesteps / 2
+            if args.n_timesteps > 0:
+                tolerance_timesteps = args.n_timesteps / 2
+            else:
+                tolerance_timesteps = hyperparams['n_timesteps'] / 2
 
         elif args.goal_tolerance_experiment_id == 2:
             goal_tolerance_function = 'decay'
             initial_goal_tolerance = 0.020
             final_goal_tolerance = 0.001
-            tolerance_timesteps = args.n_timesteps / 2
+            if args.n_timesteps > 0:
+                tolerance_timesteps = args.n_timesteps / 2
+            else:
+                tolerance_timesteps = hyperparams['n_timesteps'] / 2
 
         elif args.goal_tolerance_experiment_id == 3:
             goal_tolerance_function = 'chi'
@@ -304,7 +310,8 @@ if __name__ == '__main__':
             elif algo_ in ['dqn', 'ddpg']:
                 if hyperparams.get('normalize', False):
                     print("WARNING: normalization not supported yet for DDPG/DQN")
-                env = gym.make(env_id)
+                # Need to add this arguement because it changes the number of states (additional tolerance value)
+                env = gym.make(env_id, goal_tolerance_function=goal_tolerance_function)
                 env.seed(args.seed)
                 if env_wrapper is not None:
                     env = env_wrapper(env)
@@ -445,7 +452,12 @@ if __name__ == '__main__':
         if args.log_interval > -1:
             kwargs['log_interval'] = args.log_interval
 
-        callback_object = CtmCallback(args.log_folder, n_timesteps, None)
+        goal_tolerance_parameters = {'goal_tolerance_function': goal_tolerance_function,
+                                     'initial_goal_tolerance': initial_goal_tolerance,
+                                     'final_goal_tolerance': final_goal_tolerance,
+                                     'goal_tolerance_timesteps': tolerance_timesteps}
+
+        callback_object = CtmCallback(args.log_folder, n_timesteps, goal_tolerance_parameters)
         kwargs['callback'] = callback_object.callback
 
         # Load an experiments .pkl network weights if needed
