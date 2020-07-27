@@ -2,6 +2,7 @@ import argparse
 import gym
 import ctm2_envs
 import ctr_envs
+import ctm_envs
 import time
 
 import numpy as np
@@ -22,8 +23,8 @@ if __name__ == '__main__':
     for i in range(int(num_points)):
         print(i)
         desired_goal = env.reset()['desired_goal']
-        dg_list[:,i] = desired_goal
+        dg_list[:, i] = desired_goal
 
     env.close()
-    plt.plot(dg_list[0,:], dg_list[2,:], 'o')
+    plt.plot(dg_list[0, :], dg_list[2, :], 'o')
     plt.show()

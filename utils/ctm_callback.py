@@ -6,29 +6,28 @@ from mpi4py import MPI
 import h5py
 
 
-# TODO: Add in goal tolerance class to update goal tolerance (sampling, decay or otherwise)
 class CtmCallback(object):
-    def __init__(self, log_folder, n_timesteps, goal_tolerance_parameters):
+    def __init__(self, log_folder, n_timesteps, goal_tolerance_parameters=None):
         self.log_folder = log_folder
         self.n_timesteps = n_timesteps
         self.num_workers = MPI.COMM_WORLD.Get_size()
         self.goal_tolerance_parameters = goal_tolerance_parameters
 
-        initial_goal_tolerance = self.goal_tolerance_parameters['initial_goal_tolerance']
-        final_goal_tolerance = self.goal_tolerance_parameters['final_goal_tolerance']
-        goal_tolerance_function = self.goal_tolerance_parameters['goal_tolerance_function']
-        goal_tolerance_timesteps = self.goal_tolerance_parameters['goal_tolerance_timesteps']
-        if goal_tolerance_function == 'decay':
-            self.a = initial_goal_tolerance
-            self.r = 1 - np.power((final_goal_tolerance / initial_goal_tolerance),
-                                  1 / goal_tolerance_timesteps)
-        elif goal_tolerance_function == 'linear':
-            self.a = (final_goal_tolerance - initial_goal_tolerance) / goal_tolerance_timesteps
-            self.b = initial_goal_tolerance
-        elif goal_tolerance_function == 'chi':
-            dof = 0.5
-        else:
-            goal_tolerance_function = 'constant'
+        #initial_goal_tolerance = self.goal_tolerance_parameters['initial_goal_tolerance']
+        #final_goal_tolerance = self.goal_tolerance_parameters['final_goal_tolerance']
+        #goal_tolerance_function = self.goal_tolerance_parameters['goal_tolerance_function']
+        #goal_tolerance_timesteps = self.goal_tolerance_parameters['goal_tolerance_timesteps']
+        #if goal_tolerance_function == 'decay':
+        #    self.a = initial_goal_tolerance
+        #    self.r = 1 - np.power((final_goal_tolerance / initial_goal_tolerance),
+        #                          1 / goal_tolerance_timesteps)
+        #elif goal_tolerance_function == 'linear':
+        #    self.a = (final_goal_tolerance - initial_goal_tolerance) / goal_tolerance_timesteps
+        #    self.b = initial_goal_tolerance
+        #elif goal_tolerance_function == 'chi':
+        #    dof = 0.5
+        #else:
+        #    goal_tolerance_function = 'constant'
 
         self.ag_points = np.zeros([int(n_timesteps / 4) * self.num_workers, 3], dtype=float)
         self.errors = np.zeros(int(n_timesteps / 4) * self.num_workers, dtype=float)
@@ -53,8 +52,10 @@ class CtmCallback(object):
         self.save_step += 1
 
         # update goal tolerance if needed
-        goal_tol_new = self.update_goal_tolerance()
-        _locals['self'].env.env.update_goal_tolerance(goal_tol_new)
+        # goal_tol_new = self.update_goal_tolerance()
+        # _locals['self'].env.env.update_goal_tolerance(goal_tol_new)
+        # Updated code
+        _locals['self'].env.env.update_goal_tolerance(self.training_step)
         if self.training_step in self.save_intervals:
             if rank == 0:
                 self.save_np_arrays()

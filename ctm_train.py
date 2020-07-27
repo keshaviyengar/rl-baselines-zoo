@@ -28,6 +28,7 @@ from stable_baselines.her.utils import HERGoalEnvWrapper
 
 import ctm2_envs
 import ctr_envs
+import ctm_envs
 from utils.callback_object import CallbackObject
 from utils.ctm_callback import CtmCallback
 
@@ -76,6 +77,7 @@ if __name__ == '__main__':
                         help='Choose the experiment number for exact,'
                              'curriculum experiments. 1: exp decay, 2: linear, 3: chi-squared, 4: constant',
                         default=0, type=int)
+    parser.add_argument('--joint-representation', help='joint representation', type=str, default='')
     args = parser.parse_args()
 
     # Set log directory
@@ -130,6 +132,7 @@ if __name__ == '__main__':
                 hyperparams = hyperparams_dict['atari']
             else:
                 raise ValueError("Hyperparameters not found for {}-{}".format(args.algo, env_id))
+
 
         # Noise experiments
         # 1-5: 2 Tube, 6-10: 3 Tube, 11-15: 4 Tube
@@ -203,43 +206,11 @@ if __name__ == '__main__':
             print("four tube OU noise")
             hyperparams['noise_type'] = 'ornstein-uhlenbeck'
         else:
-            print("Non experiment being used, incorrect selection.")
-            hyperparams['noise_type'] = 'normal'
-            hyperparams['noise_std'] = 0.0
+            print("Non experiment id, custom noise selection.")
 
-        if args.goal_tolerance_experiment_id == 1:
-            goal_tolerance_function = 'linear'
-            initial_goal_tolerance = 0.020
-            final_goal_tolerance = 0.001
-            if args.n_timesteps > 0:
-                tolerance_timesteps = args.n_timesteps / 2
-            else:
-                tolerance_timesteps = hyperparams['n_timesteps'] / 2
-
-        elif args.goal_tolerance_experiment_id == 2:
-            goal_tolerance_function = 'decay'
-            initial_goal_tolerance = 0.020
-            final_goal_tolerance = 0.001
-            if args.n_timesteps > 0:
-                tolerance_timesteps = args.n_timesteps / 2
-            else:
-                tolerance_timesteps = hyperparams['n_timesteps'] / 2
-
-        elif args.goal_tolerance_experiment_id == 3:
-            goal_tolerance_function = 'chi'
-            final_goal_tolerance = 0.0001
-
-        else:
-            goal_tolerance_function = 'constant'
-            initial_goal_tolerance = 0.001
-            final_goal_tolerance = 0.001
-            # Should we overwrite the number of timesteps?
-            if args.n_timesteps > 0:
-                if args.verbose:
-                    print("Overwriting n_timesteps with n={}".format(args.n_timesteps))
-                tolerance_timesteps = args.n_timesteps
-            else:
-                tolerance_timesteps = int(hyperparams['n_timesteps'])
+        if len(args.joint_representation) is not 0:
+            hyperparams['env_kwargs']['joint_representation'] = args.joint_representation
+            print(args.joint_representation)
 
         # Sort hyperparams that will be saved
         saved_hyperparams = OrderedDict([(key, hyperparams[key]) for key in sorted(hyperparams.keys())])
@@ -300,6 +271,7 @@ if __name__ == '__main__':
             :return: (gym.Env)
             """
             global hyperparams
+            env_kwargs = hyperparams['env_kwargs']
 
             if is_atari:
                 if args.verbose > 0:
@@ -310,8 +282,7 @@ if __name__ == '__main__':
             elif algo_ in ['dqn', 'ddpg']:
                 if hyperparams.get('normalize', False):
                     print("WARNING: normalization not supported yet for DDPG/DQN")
-                # Need to add this arguement because it changes the number of states (additional tolerance value)
-                env = gym.make(env_id, goal_tolerance_function=goal_tolerance_function)
+                env = gym.make(env_id, **env_kwargs)
                 env.seed(args.seed)
                 if env_wrapper is not None:
                     env = env_wrapper(env)
@@ -340,14 +311,15 @@ if __name__ == '__main__':
 
 
         env = create_env(n_envs)
+        env_kwargs = hyperparams['env_kwargs']
         eval_env = None
         if algo_ == 'ddpg':
             if args.render_type != '':
-                eval_env = HERGoalEnvWrapper(gym.make(env_id, ros_flag=True, render_type=args.render_type,
-                                                      goal_tolerance_function=goal_tolerance_function))
+                eval_env = HERGoalEnvWrapper(gym.make(env_id, **env_kwargs))
             else:
                 eval_env = HERGoalEnvWrapper(
-                    gym.make(env_id, ros_flag=False, goal_tolerance_function=goal_tolerance_function))
+                    gym.make(env_id, **env_kwargs))
+        del hyperparams['env_kwargs']
 
         # Stop env processes to free memory
         if args.optimize_hyperparameters and n_envs > 1:
@@ -452,12 +424,12 @@ if __name__ == '__main__':
         if args.log_interval > -1:
             kwargs['log_interval'] = args.log_interval
 
-        goal_tolerance_parameters = {'goal_tolerance_function': goal_tolerance_function,
-                                     'initial_goal_tolerance': initial_goal_tolerance,
-                                     'final_goal_tolerance': final_goal_tolerance,
-                                     'goal_tolerance_timesteps': tolerance_timesteps}
+        #goal_tolerance_parameters = {'goal_tolerance_function': goal_tolerance_function,
+        #                             'initial_goal_tolerance': initial_goal_tolerance,
+        #                             'final_goal_tolerance': final_goal_tolerance,
+        #                             'goal_tolerance_timesteps': tolerance_timesteps}
 
-        callback_object = CtmCallback(args.log_folder, n_timesteps, goal_tolerance_parameters)
+        callback_object = CtmCallback(args.log_folder, n_timesteps)
         kwargs['callback'] = callback_object.callback
 
         # Load an experiments .pkl network weights if needed
