@@ -342,7 +342,7 @@ Exact-Ctr-3-Tube-Reach-v0:
   policy_kwargs: "dict(layers=[128, 128, 128])"
 
 CTR-Reach-v0:
-  n_timesteps: !!float 3e5
+  n_timesteps: !!float 2e6
   policy: 'MlpPolicy'
   model_class: 'ddpg'
   n_sampled_goal: 4
@@ -357,7 +357,7 @@ CTR-Reach-v0:
   # Trig noise
   noise_std: [0.00065, 0.00065, 0.00065, 0.025, 0.025, 0.025]
   normalize_observations: true
-  normalize_returns: true
+  normalize_returns: false
   nb_eval_steps: 200
   render: false
   render_eval: false
@@ -370,7 +370,7 @@ CTR-Reach-v0:
         final_tol: 0.001
         N_ts: 200000
         function: 'constant'
-    joint_representation: 'polar'
+    joint_representation: 'basic'
     initial_q:
       - 0
       - 0

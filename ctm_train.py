@@ -77,7 +77,8 @@ if __name__ == '__main__':
                         help='Choose the experiment number for exact,'
                              'curriculum experiments. 1: exp decay, 2: linear, 3: chi-squared, 4: constant',
                         default=0, type=int)
-    parser.add_argument('--joint-representation', help='joint representation', type=str, default='')
+    parser.add_argument('--joint-representation', help='joint representation', type=str, default='trig')
+    parser.add_argument('--relative-q', help='relative or absolute joint', type=bool, default=False)
     args = parser.parse_args()
 
     # Set log directory
@@ -211,6 +212,10 @@ if __name__ == '__main__':
         if len(args.joint_representation) is not 0:
             hyperparams['env_kwargs']['joint_representation'] = args.joint_representation
             print(args.joint_representation)
+
+        if args.relative_q is not None:
+            hyperparams['env_kwargs']['relative_q'] = args.relative_q
+            print('relative q: ', args.relative_q)
 
         # Sort hyperparams that will be saved
         saved_hyperparams = OrderedDict([(key, hyperparams[key]) for key in sorted(hyperparams.keys())])
