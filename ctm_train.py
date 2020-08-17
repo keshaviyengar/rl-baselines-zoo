@@ -79,6 +79,8 @@ if __name__ == '__main__':
                         default=0, type=int)
     parser.add_argument('--joint-representation', help='joint representation', type=str, default='trig')
     parser.add_argument('--relative-q', help='relative or absolute joint', type=bool, default=False)
+    parser.add_argument('--inc-goals-obs', help='include achieved and desired goal in observation', type=bool,
+                        default=True)
     args = parser.parse_args()
 
     # Set log directory
@@ -134,7 +136,6 @@ if __name__ == '__main__':
             else:
                 raise ValueError("Hyperparameters not found for {}-{}".format(args.algo, env_id))
 
-
         # Noise experiments
         # 1-5: 2 Tube, 6-10: 3 Tube, 11-15: 4 Tube
         # 1,6,11: Gaussian noise
@@ -153,7 +154,7 @@ if __name__ == '__main__':
         elif args.noise_experiment_id == 3:
             print("two tube varied gaussian noise 0.0009, 0.0004 std")
             hyperparams['noise_type'] = 'normal'
-            hyperparams['noise_std'] = [0.0009, 0.0004,  0.025, 0.025]
+            hyperparams['noise_std'] = [0.0009, 0.0004, 0.025, 0.025]
         elif args.noise_experiment_id == 4:
             print("two tube parameter noise 0.24 std")
             hyperparams['noise_type'] = 'adaptive-param'
@@ -216,6 +217,10 @@ if __name__ == '__main__':
         if args.relative_q is not None:
             hyperparams['env_kwargs']['relative_q'] = args.relative_q
             print('relative q: ', args.relative_q)
+
+        if args.relative_q is not None:
+            hyperparams['env_kwargs']['inc_goals_obs'] = args.inc_goals_obs
+            print('inc_goals_obs: ', args.inc_goals_obs)
 
         # Sort hyperparams that will be saved
         saved_hyperparams = OrderedDict([(key, hyperparams[key]) for key in sorted(hyperparams.keys())])
@@ -429,13 +434,13 @@ if __name__ == '__main__':
         if args.log_interval > -1:
             kwargs['log_interval'] = args.log_interval
 
-        #goal_tolerance_parameters = {'goal_tolerance_function': goal_tolerance_function,
+        # goal_tolerance_parameters = {'goal_tolerance_function': goal_tolerance_function,
         #                             'initial_goal_tolerance': initial_goal_tolerance,
         #                             'final_goal_tolerance': final_goal_tolerance,
         #                             'goal_tolerance_timesteps': tolerance_timesteps}
 
         callback_object = CtmCallback(args.log_folder, n_timesteps)
-        kwargs['callback'] = callback_object.callback
+        # kwargs['callback'] = callback_object.callback
 
         # Load an experiments .pkl network weights if needed
         if not args.load_weights_env == '':
