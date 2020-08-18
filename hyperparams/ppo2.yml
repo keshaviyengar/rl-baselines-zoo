@@ -319,14 +319,15 @@ MiniGrid-FourRooms-v0:
 CTR-Reach-v0:
   normalize: true
   n_envs: 8 # number of environment copies running in parallel
-  n_timesteps: !!float 1e5
+  n_timesteps: !!float 2e6
   policy: MlpPolicy
-  n_steps: 128 # batch size is n_steps * n_env
-  nminibatches: 32 # Number of training minibatches per update
+  n_steps: 150 # batch size is n_steps * n_env
+  nminibatches: 256 # Number of training minibatches per update
   lam: 0.95 #  Factor for trade-off of bias vs variance for Generalized Advantage Estimator
-  gamma: 0.99
+  gamma: 0.95
   noptepochs: 10 #  Number of epoch when optimizing the surrogate
-  ent_coef: 0.0 # Entropy coefficient for the loss caculation
+  vf_coef: 0.75 # Value function coefficient for the loss calculation
+  ent_coef: 0.001 # Entropy coefficient for the loss calculation
   learning_rate: 2.5e-4 # The learning rate, it can be a function
   cliprange: 0.2 # Clipping parameter, it can be a function
   env_kwargs:
