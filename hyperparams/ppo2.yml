@@ -322,7 +322,7 @@ CTR-Reach-v0:
   n_timesteps: !!float 2e6
   policy: MlpPolicy
   n_steps: 150 # batch size is n_steps * n_env
-  nminibatches: 256 # Number of training minibatches per update
+  nminibatches: 300 # Number of training minibatches per update
   lam: 0.95 #  Factor for trade-off of bias vs variance for Generalized Advantage Estimator
   gamma: 0.95
   noptepochs: 10 #  Number of epoch when optimizing the surrogate

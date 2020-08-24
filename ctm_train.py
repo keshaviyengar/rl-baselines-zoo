@@ -34,7 +34,7 @@ from utils.ctm_callback import CtmCallback
 
 from stable_baselines.logger import configure
 
-# TODO: Move experiment arguements to yaml, rather than it being here.
+# TODO: Move experiment arguments to yaml, rather than it being here.
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
@@ -323,12 +323,14 @@ if __name__ == '__main__':
         env = create_env(n_envs)
         env_kwargs = hyperparams['env_kwargs']
         eval_env = None
-        if algo_ == 'ddpg':
+        if algo_ == 'her':
             if args.render_type != '':
                 eval_env = HERGoalEnvWrapper(gym.make(env_id, **env_kwargs))
             else:
                 eval_env = HERGoalEnvWrapper(
                     gym.make(env_id, **env_kwargs))
+        if algo_ in ['ppo2', 'ddpg']:
+                eval_env = gym.make(env_id, **env_kwargs)
         del hyperparams['env_kwargs']
 
         # Stop env processes to free memory
@@ -434,13 +436,11 @@ if __name__ == '__main__':
         if args.log_interval > -1:
             kwargs['log_interval'] = args.log_interval
 
-        # goal_tolerance_parameters = {'goal_tolerance_function': goal_tolerance_function,
-        #                             'initial_goal_tolerance': initial_goal_tolerance,
-        #                             'final_goal_tolerance': final_goal_tolerance,
-        #                             'goal_tolerance_timesteps': tolerance_timesteps}
-
-        callback_object = CtmCallback(args.log_folder, n_timesteps)
-        # kwargs['callback'] = callback_object.callback
+        if algo_ in ['her']:
+            obs_dim = eval_env.env.get_obs_dim()
+            goal_dim = eval_env.env.get_goal_dim()
+            callback_object = CtmCallback(args.log_folder, algo_, n_timesteps, args.inc_goals_obs, obs_dim, goal_dim)
+            kwargs['callback'] = callback_object.callback
 
         # Load an experiments .pkl network weights if needed
         if not args.load_weights_env == '':

@@ -84,3 +84,36 @@ HopperBulletEnv-v0:
   critic_lr: 0.00156
   normalize_observations: True
   normalize_returns: False
+
+# To be tuned
+CTR-Reach-v0:
+  n_timesteps: !!float 2e6
+  policy: 'MlpPolicy'
+  gamma: 0.95
+  memory_limit: 10000
+  noise_type: 'normal'
+  # Trig noise
+  noise_std: [0.00065, 0.00065, 0.00065, 0.025, 0.025, 0.025]
+  random_exploration: 0.294
+  batch_size: 256
+  actor_lr: 0.0005
+  critic_lr: 0.0005
+  normalize_observations: True
+  normalize_returns: False
+  policy_kwargs: "dict(layers=[128, 128, 128])"
+  env_kwargs:
+    model: 'dominant_stiffness'
+    goal_tolerance_parameters:
+      inc_tol_obs: false
+      initial_tol: 0.001
+      final_tol: 0.001
+      N_ts: 200000
+      function: 'constant'
+    joint_representation: 'basic'
+    initial_q:
+      - 0
+      - 0
+      - 0
+      - 0
+      - 0
+      - 0
