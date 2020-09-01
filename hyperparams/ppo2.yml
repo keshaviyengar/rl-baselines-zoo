@@ -334,7 +334,7 @@ CTR-Reach-v0:
     model: 'dominant_stiffness'
     goal_tolerance_parameters:
       inc_tol_obs: false
-      initial_tol: 0.020
+      initial_tol: 0.001
       final_tol: 0.001
       N_ts: 200000
       function: 'constant'

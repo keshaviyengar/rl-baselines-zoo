@@ -31,10 +31,21 @@ import ctr_envs
 import ctm_envs
 from utils.callback_object import CallbackObject
 from utils.ctm_callback import CtmCallback
+from utils.ctm_ppo_callback import CtmPPOCallback
 
 from stable_baselines.logger import configure
 
-# TODO: Move experiment arguments to yaml, rather than it being here.
+
+def str2bool(v):
+    if isinstance(v, bool):
+       return v
+    if v.lower() in ('yes', 'true', 'True' 't', 'y', '1'):
+        return True
+    elif v.lower() in ('no', 'false', 'False', 'n', '0'):
+        return False
+    else:
+        raise argparse.ArgumentTypeError('Boolean value expected.')
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
@@ -78,9 +89,8 @@ if __name__ == '__main__':
                              'curriculum experiments. 1: exp decay, 2: linear, 3: chi-squared, 4: constant',
                         default=0, type=int)
     parser.add_argument('--joint-representation', help='joint representation', type=str, default='trig')
-    parser.add_argument('--relative-q', help='relative or absolute joint', type=bool, default=False)
-    parser.add_argument('--inc-goals-obs', help='include achieved and desired goal in observation', type=bool,
-                        default=True)
+    parser.add_argument('--relative-q', help='relative or absolute joint', type=str2bool, default=False)
+    parser.add_argument('--inc-goals_obs', help='include achieved and desired goal in observation', type=str2bool, default=False)
     args = parser.parse_args()
 
     # Set log directory
@@ -218,7 +228,7 @@ if __name__ == '__main__':
             hyperparams['env_kwargs']['relative_q'] = args.relative_q
             print('relative q: ', args.relative_q)
 
-        if args.relative_q is not None:
+        if args.inc_goals_obs is not None:
             hyperparams['env_kwargs']['inc_goals_obs'] = args.inc_goals_obs
             print('inc_goals_obs: ', args.inc_goals_obs)
 
@@ -436,11 +446,17 @@ if __name__ == '__main__':
         if args.log_interval > -1:
             kwargs['log_interval'] = args.log_interval
 
-        if algo_ in ['her']:
+        if algo_ in ['her', 'ddpg']:
             obs_dim = eval_env.env.get_obs_dim()
             goal_dim = eval_env.env.get_goal_dim()
-            callback_object = CtmCallback(args.log_folder, algo_, n_timesteps, args.inc_goals_obs, obs_dim, goal_dim)
+            callback_object = CtmCallback(args.log_folder, n_timesteps, args.inc_goals_obs, obs_dim, goal_dim)
             kwargs['callback'] = callback_object.callback
+        elif algo_ in ['ppo2']:
+            obs_dim = eval_env.env.get_obs_dim()
+            goal_dim = eval_env.env.get_goal_dim()
+            callback_object = CtmPPOCallback(args.log_folder, n_envs, n_timesteps, args.inc_goals_obs, obs_dim, goal_dim)
+            kwargs['callback'] = callback_object.callback
+
 
         # Load an experiments .pkl network weights if needed
         if not args.load_weights_env == '':
