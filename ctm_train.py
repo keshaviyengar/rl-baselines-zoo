@@ -90,7 +90,7 @@ if __name__ == '__main__':
                         default=0, type=int)
     parser.add_argument('--joint-representation', help='joint representation', type=str, default='trig')
     parser.add_argument('--relative-q', help='relative or absolute joint', type=str2bool, default=False)
-    parser.add_argument('--inc-goals_obs', help='include achieved and desired goal in observation', type=str2bool, default=False)
+    parser.add_argument('--inc-goals-obs', help='include achieved and desired goal in observation', type=str2bool, default=False)
     args = parser.parse_args()
 
     # Set log directory
