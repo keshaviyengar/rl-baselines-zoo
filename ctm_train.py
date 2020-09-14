@@ -228,7 +228,7 @@ if __name__ == '__main__':
             hyperparams['env_kwargs']['relative_q'] = args.relative_q
             print('relative q: ', args.relative_q)
 
-        if args.inc_goals_obs is not None:
+        if args.inc_goals_obs is not None and args.algo != 'her':
             hyperparams['env_kwargs']['inc_goals_obs'] = args.inc_goals_obs
             print('inc_goals_obs: ', args.inc_goals_obs)
 
@@ -333,13 +333,13 @@ if __name__ == '__main__':
         env = create_env(n_envs)
         env_kwargs = hyperparams['env_kwargs']
         eval_env = None
-        if algo_ == 'her':
+        if args.algo == 'her':
             if args.render_type != '':
                 eval_env = HERGoalEnvWrapper(gym.make(env_id, **env_kwargs))
             else:
                 eval_env = HERGoalEnvWrapper(
                     gym.make(env_id, **env_kwargs))
-        if algo_ in ['ppo2', 'ddpg']:
+        if args.algo in ['ppo2', 'ddpg']:
                 eval_env = gym.make(env_id, **env_kwargs)
         del hyperparams['env_kwargs']
 
