@@ -91,6 +91,7 @@ if __name__ == '__main__':
     parser.add_argument('--joint-representation', help='joint representation', type=str, default='trig')
     parser.add_argument('--relative-q', help='relative or absolute joint', type=str2bool, default=False)
     parser.add_argument('--inc-goals-obs', help='include achieved and desired goal in observation', type=str2bool, default=False)
+    parser.add_argument('--resample-joints', help='At the end of episode, resample joint to get a new achieved goal', type=str2bool, default=False)
     args = parser.parse_args()
 
     # Set log directory
@@ -231,6 +232,10 @@ if __name__ == '__main__':
         if args.inc_goals_obs is not None and args.algo != 'her':
             hyperparams['env_kwargs']['inc_goals_obs'] = args.inc_goals_obs
             print('inc_goals_obs: ', args.inc_goals_obs)
+
+        if args.resample_joints is not None:
+            hyperparams['env_kwargs']['resample_joints'] = args.resample_joints
+            print('resample_joints: ', args.resample_joints)
 
         # Sort hyperparams that will be saved
         saved_hyperparams = OrderedDict([(key, hyperparams[key]) for key in sorted(hyperparams.keys())])
