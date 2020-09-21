@@ -363,14 +363,14 @@ CTR-Reach-v0:
   render_eval: false
   policy_kwargs: "dict(layers=[128, 128, 128])"
   env_kwargs:
-    model: 'dominant_stiffness'
+    model: 'exact'
     goal_tolerance_parameters:
-        inc_tol_obs: false
+        inc_tol_obs: true
         initial_tol: 0.020
         final_tol: 0.001
         N_ts: 200000
         function: 'constant'
-    joint_representation: 'basic'
+    joint_representation: 'trig'
     initial_q:
       - 0
       - 0

@@ -38,7 +38,7 @@ from stable_baselines.logger import configure
 
 def str2bool(v):
     if isinstance(v, bool):
-       return v
+        return v
     if v.lower() in ('yes', 'true', 'True' 't', 'y', '1'):
         return True
     elif v.lower() in ('no', 'false', 'False', 'n', '0'):
@@ -86,12 +86,14 @@ if __name__ == '__main__':
                         default=0, type=int)
     parser.add_argument('--goal-tolerance-experiment-id',
                         help='Choose the experiment number for exact,'
-                             'curriculum experiments. 1: exp decay, 2: linear, 3: chi-squared, 4: constant',
+                             'curriculum experiments. 1: constant, 2: linear, 3: exp decay',
                         default=0, type=int)
     parser.add_argument('--joint-representation', help='joint representation', type=str, default='trig')
     parser.add_argument('--relative-q', help='relative or absolute joint', type=str2bool, default=False)
-    parser.add_argument('--inc-goals-obs', help='include achieved and desired goal in observation', type=str2bool, default=False)
-    parser.add_argument('--resample-joints', help='At the end of episode, resample joint to get a new achieved goal', type=str2bool, default=False)
+    parser.add_argument('--inc-goals-obs', help='include achieved and desired goal in observation', type=str2bool,
+                        default=True)
+    parser.add_argument('--resample-joints', help='At the end of episode, resample joint to get a new achieved goal',
+                        type=str2bool, default=False)
     args = parser.parse_args()
 
     # Set log directory
@@ -221,6 +223,19 @@ if __name__ == '__main__':
         else:
             print("Non experiment id, custom noise selection.")
 
+        # CRAS 2020 goal tolerance experiments
+        if args.goal_tolerance_experiment_id == 1:
+            print("Constant tolerance function experiment")
+            hyperparams['env_kwargs']["goal_tolerance_parameters"]["function"] = 'constant'
+
+        elif args.goal_tolerance_experiment_id == 2:
+            print("Linear tolerance function experiment")
+            hyperparams['env_kwargs']["goal_tolerance_parameters"]["function"] = 'linear'
+
+        elif args.goal_tolerance_experiment_id == 3:
+            print("Exp decay tolerance function experiment")
+            hyperparams['env_kwargs']["goal_tolerance_parameters"]["function"] = 'exp'
+
         if len(args.joint_representation) is not 0:
             hyperparams['env_kwargs']['joint_representation'] = args.joint_representation
             print(args.joint_representation)
@@ -345,7 +360,7 @@ if __name__ == '__main__':
                 eval_env = HERGoalEnvWrapper(
                     gym.make(env_id, **env_kwargs))
         if args.algo in ['ppo2', 'ddpg']:
-                eval_env = gym.make(env_id, **env_kwargs)
+            eval_env = gym.make(env_id, **env_kwargs)
         del hyperparams['env_kwargs']
 
         # Stop env processes to free memory
@@ -459,9 +474,9 @@ if __name__ == '__main__':
         elif algo_ in ['ppo2']:
             obs_dim = eval_env.env.get_obs_dim()
             goal_dim = eval_env.env.get_goal_dim()
-            callback_object = CtmPPOCallback(args.log_folder, n_envs, n_timesteps, args.inc_goals_obs, obs_dim, goal_dim)
+            callback_object = CtmPPOCallback(args.log_folder, n_envs, n_timesteps, args.inc_goals_obs, obs_dim,
+                                             goal_dim)
             kwargs['callback'] = callback_object.callback
-
 
         # Load an experiments .pkl network weights if needed
         if not args.load_weights_env == '':
