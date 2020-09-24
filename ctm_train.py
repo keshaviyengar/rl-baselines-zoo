@@ -234,7 +234,7 @@ if __name__ == '__main__':
 
         elif args.goal_tolerance_experiment_id == 3:
             print("Exp decay tolerance function experiment")
-            hyperparams['env_kwargs']["goal_tolerance_parameters"]["function"] = 'exp'
+            hyperparams['env_kwargs']["goal_tolerance_parameters"]["function"] = 'decay'
 
         if len(args.joint_representation) is not 0:
             hyperparams['env_kwargs']['joint_representation'] = args.joint_representation
