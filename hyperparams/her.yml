@@ -364,12 +364,18 @@ CTR-Reach-v0:
   policy_kwargs: "dict(layers=[128, 128, 128])"
   env_kwargs:
     model: 'exact'
-    goal_tolerance_parameters:
+    pos_tolerance_parameters:
         inc_tol_obs: true
         initial_tol: 0.020
         final_tol: 0.001
         N_ts: 200000
-        function: 'constant'
+        function: 'decay'
+    orient_tolerance_parameters:
+      inc_tol_obs: true
+      initial_tol: 0.349 # 20 degrees
+      final_tol: 0.00179 # 1 degree
+      N_ts: 200000
+      function: 'decay'
     joint_representation: 'trig'
     initial_q:
       - 0

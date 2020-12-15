@@ -30,7 +30,8 @@ class CtmCallback(object):
 
         self.ag_points = []
         self.dg_points = []
-        self.errors = []
+        self.errors_pos = []
+        self.errors_orient = []
 
         self.training_step = 0
         self.save_intervals = np.arange(0, n_timesteps + 1, int(n_timesteps / 4))  # arrange stop is excluding
@@ -44,11 +45,13 @@ class CtmCallback(object):
         ep_infos = _locals['info']
         ag_points = ep_infos['achieved_goal']
         dg_points = ep_infos['desired_goal']
-        errors = ep_infos['error']
+        errors_pos = ep_infos['errors_pos']
+        errors_orient = ep_infos['errors_orient']
 
         self.ag_points.extend(ag_points * 1000)
         self.dg_points.extend(dg_points * 1000)
-        self.errors.append(errors * 1000)
+        self.errors_pos.append(errors_pos * 1000)
+        self.errors_orient.append(np.rad2deg(errors_orient))
 
         self.training_step = _locals['total_steps']
 
@@ -80,13 +83,15 @@ class CtmCallback(object):
         hf = h5py.File(self.log_folder + '/saved_data/' + 'data_' + str(timestep) + '.h5', 'w')
         hf.create_dataset('achieved_goals', data=self.ag_points)
         hf.create_dataset('desired_goals', data=self.dg_points)
-        hf.create_dataset('errors', data=self.errors)
+        hf.create_dataset('errors_pos', data=self.errors_pos)
+        hf.create_dataset('errors_orient', data=self.errors_pos)
         hf.close()
 
     def clear_np_arrays(self):
         self.ag_points = []
         self.dg_points = []
-        self.errors = []
+        self.errors_pos = []
+        self.errors_orient = []
 
     def convert_dict_to_obs(self, obs_dict):
         return np.concatenate([obs_dict[key] for key in self.KEY_ORDER])
