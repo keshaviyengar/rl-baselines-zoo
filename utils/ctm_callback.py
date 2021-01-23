@@ -45,14 +45,12 @@ class CtmCallback(object):
         ep_infos = _locals['info']
         ag_points = ep_infos['achieved_goal']
         dg_points = ep_infos['desired_goal']
-        errors_pos = ep_infos['errors_pos']
-        errors_orient = ep_infos['errors_orient']
-
         self.ag_points.extend(ag_points * 1000)
         self.dg_points.extend(dg_points * 1000)
+        errors_pos = ep_infos['errors_pos']
+        errors_orient = ep_infos['errors_orient']
         self.errors_pos.append(errors_pos * 1000)
         self.errors_orient.append(np.rad2deg(errors_orient))
-
         self.training_step = _locals['total_steps']
 
         # update goal tolerance if needed
